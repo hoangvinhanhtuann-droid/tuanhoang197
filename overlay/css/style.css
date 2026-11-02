@@ -1,0 +1,604 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #0d0705;
+  overflow: hidden;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Khung hình chuẩn 9:16 dọc cho TikTok Live / ManyCam */
+#stage-container {
+  position: relative;
+  width: min(100vw, calc(100vh * 9 / 16));
+  height: min(100vh, calc(100vw * 16 / 9));
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  background: #1a0c06;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+}
+
+/* 1. Lớp ảnh nền 5 mẫu thiết kế */
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  transition: background-image 0.7s ease-in-out, filter 0.6s ease;
+  z-index: 1;
+}
+
+/* 2. Lớp Three.js & Canvas 2.5D */
+#three-canvas,
+#scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#three-canvas {
+  z-index: 2;
+}
+
+#scene-canvas {
+  z-index: 3;
+}
+
+/* 3. Lớp nhãn 3 vị Thầy & 24 Thiền sinh */
+#monk-labels-layer,
+#seat-labels-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.monk-tag {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 4px 13px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(68, 38, 13, 0.92) 0%, rgba(36, 18, 5, 0.95) 100%);
+  border: 1.5px solid #e2b857;
+  color: #fff6d6;
+  font-size: clamp(10px, 1.5vh, 14px);
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65), 0 0 8px rgba(246, 201, 92, 0.35);
+  letter-spacing: 0.2px;
+}
+
+.monk-left {
+  left: 18%;
+  top: 56%;
+}
+
+.monk-center {
+  left: 50%;
+  top: 55.2%;
+  border-color: #ffd76a;
+  background: linear-gradient(180deg, rgba(92, 48, 10, 0.95) 0%, rgba(45, 22, 4, 0.97) 100%);
+}
+
+.monk-right {
+  left: 82%;
+  top: 56%;
+}
+
+/* Nhãn tên người ngồi thiền */
+.seat-name-tag {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(34, 19, 8, 0.88);
+  border: 1px solid rgba(226, 184, 87, 0.8);
+  color: #fff8e7;
+  font-size: clamp(9px, 1.18vh, 12px);
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  transition: transform 0.25s ease, border-color 0.3s ease;
+}
+
+.seat-name-tag.merit-vip {
+  background: linear-gradient(90deg, #5c3409, #8c520d, #5c3409);
+  border: 1.5px solid #ffd700;
+  color: #fffac2;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.65);
+}
+
+/* Bong bóng lời cầu nguyện */
+.prayer-bubble {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 248, 224, 0.95);
+  color: #4a2508;
+  border: 1px solid #d69e2e;
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: clamp(8px, 1.02vh, 10.5px);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  animation: floatPrayer 4.5s ease-out forwards;
+}
+
+@keyframes floatPrayer {
+  0% { opacity: 0; transform: translate(-50%, 5px) scale(0.9); }
+  12% { opacity: 1; transform: translate(-50%, 0px) scale(1); }
+  82% { opacity: 1; transform: translate(-50%, -4px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -12px) scale(0.95); }
+}
+
+/* 4. Header Banner Đỉnh */
+.top-hud {
+  position: absolute;
+  top: 3.5%;
+  left: 4.5%;
+  right: 4.5%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8vh;
+}
+
+.temple-banner {
+  width: 100%;
+  padding: 1.15vh 3.5%;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, rgba(64, 34, 13, 0.94) 0%, rgba(28, 14, 5, 0.96) 100%);
+  border: 1.6px solid rgba(229, 184, 91, 0.88);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(245, 198, 93, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.banner-lotus-icon {
+  position: absolute;
+  left: 4.5%;
+  font-size: clamp(18px, 2.7vh, 26px);
+  color: #e6b95c;
+  text-shadow: 0 0 8px rgba(246, 204, 102, 0.55);
+}
+
+.banner-texts {
+  text-align: center;
+}
+
+#banner-title {
+  font-family: 'Noto Serif', serif;
+  font-size: clamp(15px, 2.38vh, 24px);
+  font-weight: 700;
+  color: #ebd094;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+
+#banner-subtitle {
+  font-size: clamp(10px, 1.38vh, 14px);
+  color: #d7be8c;
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.status-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.status-pill {
+  height: 4.2vh;
+  min-width: 118px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(31, 18, 9, 0.88);
+  border: 1.2px solid rgba(204, 161, 82, 0.68);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #fff6e0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+}
+
+.green-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #38d353;
+  box-shadow: 0 0 8px #38d353;
+}
+
+#seat-counter,
+#session-timer {
+  font-size: clamp(12px, 1.65vh, 16px);
+  font-weight: 700;
+}
+
+.pill-sub {
+  font-size: clamp(8.5px, 1.1vh, 11px);
+  line-height: 1.05;
+  color: #e2d1b0;
+  font-weight: 600;
+}
+
+/* 5. Hai Bảng Thông Tin Trái / Phải */
+.info-card {
+  position: absolute;
+  top: 25.5%;
+  z-index: 6;
+  background: rgba(38, 20, 8, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1.2px solid rgba(212, 167, 85, 0.72);
+  border-radius: 12px;
+  padding: 0.8vh 10px;
+  color: #f7ebd2;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+  transition: opacity 0.3s ease, transform 0.25s ease, top 0.35s ease, left 0.35s ease, right 0.35s ease;
+}
+
+.left-guide-card {
+  left: 2.3%;
+  width: 29.5%;
+  font-size: clamp(9px, 1.22vh, 12.2px);
+  line-height: 1.32;
+  user-select: none;
+}
+
+/* Thanh nắm kéo thả & Nút thu nhỏ */
+.guide-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  cursor: grab;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed rgba(229, 184, 91, 0.3);
+}
+
+.guide-card-header:active {
+  cursor: grabbing;
+}
+
+.guide-header-title {
+  font-size: 0.88em;
+  font-weight: 700;
+  color: #f6c453;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.guide-btn-toggle {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fbd38d;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.guide-btn-toggle:hover {
+  background: rgba(255, 215, 0, 0.3);
+  color: #ffffff;
+}
+
+/* Khi bảng bị thu gọn (Collapsed) */
+.left-guide-card.collapsed {
+  width: auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(45, 24, 10, 0.92);
+  cursor: pointer;
+}
+
+.left-guide-card.collapsed .guide-body-content {
+  display: none !important;
+}
+
+.left-guide-card.collapsed .guide-card-header {
+  border-bottom: none;
+  margin-bottom: 0;
+  gap: 8px;
+}
+
+/* Carousel nội dung luân chuyển thông minh */
+.guide-carousel-viewport {
+  position: relative;
+  overflow: hidden;
+  min-height: 4.8vh;
+}
+
+.guide-carousel-slide {
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  opacity: 0;
+  transform: translateY(6px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.guide-carousel-slide.active {
+  opacity: 1;
+  transform: translateY(0);
+  position: relative;
+  pointer-events: auto;
+}
+
+/* Preset vị trí linh hoạt (Không dùng !important để cho phép inline style & kéo thả tự do) */
+.left-guide-card.pos-top-left {
+  top: 10.5%;
+  left: 2.3%;
+  right: auto;
+  width: 29.5%;
+}
+
+.left-guide-card.pos-top-right {
+  top: 10.5%;
+  left: auto;
+  right: 2.3%;
+  width: 27.5%;
+}
+
+.left-guide-card.pos-mid-left {
+  top: 22.0%;
+  left: 2.3%;
+  right: auto;
+  width: 29.5%;
+}
+
+.left-guide-card.pos-below-merit {
+  top: 42.0%;
+  left: auto;
+  right: 2.3%;
+  width: 27.5%;
+}
+
+.left-guide-card.pos-bottom-ticker {
+  top: 92.5%;
+  left: 3.5%;
+  right: 3.5%;
+  width: 93%;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.left-guide-card.pos-custom {
+  /* Tọa độ hoàn toàn tự do theo inline style: left, top */
+  width: 29.5%;
+}
+
+.left-guide-card.is-dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 0 25px rgba(246, 196, 83, 0.8) !important;
+  border-color: #ffd700 !important;
+  user-select: none;
+}
+
+.left-guide-card.ui-hidden {
+  display: none !important;
+}
+
+.guide-block {
+  margin: 1.5px 0;
+}
+
+.guide-highlight {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.kw-gold {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.guide-divider {
+  height: 1px;
+  background: rgba(218, 173, 88, 0.25);
+  margin: 0.4vh 0;
+}
+
+.right-merit-card {
+  right: 2.3%;
+  width: 26.5%;
+  min-height: 7.2vh;
+  text-align: center;
+}
+
+.merit-header {
+  font-size: clamp(11px, 1.45vh, 14.5px);
+  font-weight: 700;
+  color: #fbd38d;
+  margin-bottom: 0.5vh;
+  letter-spacing: 0.4px;
+}
+
+.merit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 13vh;
+  overflow: hidden;
+}
+
+.merit-empty {
+  font-size: clamp(10px, 1.3vh, 13px);
+  color: rgba(235, 216, 184, 0.72);
+  padding: 0.4vh 0;
+}
+
+.merit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: clamp(9px, 1.18vh, 11.8px);
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  color: #fff6d1;
+}
+
+.merit-item-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 72%;
+}
+
+.merit-item-pts {
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 0.92em;
+}
+
+/* 6. Sớ Vàng Xướng Tên Hồi Hướng / Đọc Kinh */
+.chant-toast {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 42%;
+  z-index: 12;
+  pointer-events: none;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.chant-toast.hidden {
+  opacity: 0;
+  transform: translateY(12px) scale(0.95);
+}
+
+.chant-toast-inner {
+  background: linear-gradient(135deg, rgba(74, 35, 6, 0.96), rgba(40, 17, 3, 0.97));
+  border: 2px solid #ffd700;
+  border-radius: 16px;
+  padding: 1.4vh 16px;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(255, 208, 0, 0.55), inset 0 0 18px rgba(255, 215, 0, 0.25);
+}
+
+.chant-toast-title {
+  color: #ffd700;
+  font-family: 'Noto Serif', serif;
+  font-size: clamp(12px, 1.65vh, 16px);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
+
+.chant-toast-text {
+  color: #fff9e6;
+  font-size: clamp(11px, 1.42vh, 14px);
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* 7. Thanh Công Cụ Nhanh (Tự mờ khi không rê chuột) */
+.quick-toolbar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(15, 10, 6, 0.85);
+  border: 1px solid rgba(236, 201, 75, 0.5);
+  opacity: 0.12;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+#stage-container:hover .quick-toolbar,
+.quick-toolbar.force-visible {
+  opacity: 0.96;
+}
+
+.toolbar-btn,
+.theme-btn {
+  background: rgba(65, 38, 15, 0.9);
+  color: #fbe6b2;
+  border: 1px solid rgba(226, 184, 87, 0.55);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover,
+.theme-btn:hover,
+.theme-btn.active {
+  background: #d69e2e;
+  color: #1a0d04;
+  border-color: #fff3c4;
+}
+
+.active-pulse {
+  background: #c53030 !important;
+  color: #fff !important;
+  animation: pulseBtn 1.5s infinite;
+}
+
+@keyframes pulseBtn {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7); }
+  50% { box-shadow: 0 0 0 8px rgba(245, 101, 101, 0); }
+}
+
+/* Tùy biến màu HUD theo từng Mẫu Chùa */
+body.theme-2 .temple-banner,
+body.theme-2 .info-card,
+body.theme-2 .status-pill {
+  background: rgba(13, 30, 58, 0.84);
+  border-color: rgba(243, 202, 116, 0.78);
+}
+
+body.theme-3 .info-card {
+  background: rgba(34, 68, 56, 0.82);
+  border-color: rgba(250, 214, 115, 0.88);
+}
+
+body.theme-4 .temple-banner,
+body.theme-4 .info-card,
+body.theme-4 .status-pill {
+  background: rgba(48, 32, 19, 0.88);
+  border-color: rgba(214, 178, 112, 0.82);
+}

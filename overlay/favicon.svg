@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5c2d0c"/>
+      <stop offset="100%" stop-color="#1f0d04"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff3b0"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#bg)" stroke="url(#gold)" stroke-width="3"/>
+  <!-- Hoa Sen Vàng Phật Giáo -->
+  <path d="M32 12 C37 22, 40 30, 32 42 C24 30, 27 22, 32 12 Z" fill="url(#gold)"/>
+  <path d="M32 42 C22 38, 15 30, 18 19 C24 24, 28 31, 32 42 Z" fill="url(#gold)" opacity="0.9"/>
+  <path d="M32 42 C42 38, 49 30, 46 19 C40 24, 36 31, 32 42 Z" fill="url(#gold)" opacity="0.9"/>
+  <path d="M14 44 C22 48, 42 48, 50 44 C44 52, 20 52, 14 44 Z" fill="url(#gold)"/>
+</svg>

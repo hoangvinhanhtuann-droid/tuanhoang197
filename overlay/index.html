@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thiền Đường Tịnh Tâm - Live Stream Overlay (9:16)</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+  <link rel="shortcut icon" href="/favicon.svg?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Three.js CDN cho hiệu ứng hạt 3D, Hào quang & Ánh sáng Chánh Điện -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="theme-1">
+  <!-- Khung chuẩn 9:16 cho ManyCam & TikTok Live Studio -->
+  <div id="stage-container">
+    <!-- 1. Lớp nền Chánh Điện (5 mẫu thiết kế) -->
+    <div id="theme-bg-layer" class="bg-layer"></div>
+
+    <!-- 2. Lớp Three.js WebGL (Hào quang Phật, Khói trầm hương 3D, Hoa sen rơi, Đèn trời) -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- 3. Lớp Canvas 2.5D (24 Bồ Đoàn phối cảnh, 8 Skin Nhân vật ngồi thiền, Vòng sáng Công Đức) -->
+    <canvas id="scene-canvas"></canvas>
+
+    <!-- 4. Lớp Nhãn tên 3 vị Thầy & 24 Thiền sinh -->
+    <div id="monk-labels-layer">
+      <div class="monk-tag monk-left" id="tag-thay-minh-dao">Thầy Minh Đạo</div>
+      <div class="monk-tag monk-center" id="tag-su-tru-tri">Sư Trụ Trì</div>
+      <div class="monk-tag monk-right" id="tag-thay-tam-tu">Thầy Tâm Từ</div>
+    </div>
+    <div id="seat-labels-layer"></div>
+
+    <!-- 5. Lớp Giao Diện HUD (Banner Đỉnh, Bảng Hướng Dẫn Trái, Bảng Công Đức Phải) -->
+    <header class="top-hud">
+      <div class="temple-banner">
+        <div class="banner-lotus-icon">❁</div>
+        <div class="banner-texts">
+          <h1 id="banner-title">THIỀN ĐƯỜNG TỊNH TÂM</h1>
+          <p id="banner-subtitle">Nam Mô A Di Đà Phật</p>
+        </div>
+      </div>
+
+      <div class="status-pills">
+        <div class="status-pill count-pill">
+          <span class="green-dot"></span>
+          <strong id="seat-counter">15/24</strong>
+          <span class="pill-sub">đang<br/>thiền</span>
+        </div>
+        <div class="status-pill timer-pill">
+          <span class="timer-icon">⏱</span>
+          <strong id="session-timer">00:00:45</strong>
+        </div>
+      </div>
+    </header>
+
+    <!-- Bảng Hướng Dẫn Bên Trái (Hỗ trợ kéo thả chuột, thu gọn và xoay vòng nội dung) -->
+    <aside id="guide-card" class="info-card left-guide-card">
+      <div id="guide-drag-handle" class="guide-card-header" title="Giữ chuột để kéo thả vị trí">
+        <span class="guide-header-title">✥ HƯỚNG DẪN</span>
+        <button id="btn-toggle-guide" class="guide-btn-toggle" title="Thu nhỏ / Mở rộng">─</button>
+      </div>
+      
+      <div class="guide-body-content">
+        <div class="guide-block">
+          <span class="guide-icon">💬</span>
+          <span class="guide-highlight">Bình luận bất kỳ</span> để vào thiền
+        </div>
+        <div class="guide-divider"></div>
+        <div class="guide-block">
+          <span class="guide-icon">🪔</span>
+          Gõ <b class="kw-gold">adidaphat</b> lên cắm nhang
+        </div>
+        <div class="guide-divider"></div>
+        
+        <!-- Khối Carousel tự động luân phiên -->
+        <div class="guide-carousel-viewport">
+          <div class="guide-carousel-slide active" data-slide="0">
+            <div>Gõ: <b class="kw-gold">nam</b> · <b class="kw-gold">nữ</b> · <b class="kw-gold">sư</b> · <b class="kw-gold">tiểu</b></div>
+            <div><b class="kw-gold">học sinh</b> · <b class="kw-gold">đức cha</b> đổi hình</div>
+          </div>
+          <div class="guide-carousel-slide" data-slide="1">
+            <div>Gõ: <b class="kw-gold">thần tài</b> · <b class="kw-gold">cảnh sát</b> · <b class="kw-gold">bác sĩ</b></div>
+            <div><b class="kw-gold">heo</b> · <b class="kw-gold">bò</b> · <b class="kw-gold">gà</b> · <b class="kw-gold">trộm</b></div>
+          </div>
+          <div class="guide-carousel-slide" data-slide="2">
+            <div>🎁 <span class="guide-highlight">Tặng quà</span> được xướng tên</div>
+            <div class="kw-gold">✦ Hồi Hướng Công Đức ✦</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bảng Công Đức Bên Phải -->
+    <aside class="info-card right-merit-card">
+      <div class="merit-header">✦ Công Đức ✦</div>
+      <div id="merit-list-container" class="merit-body">
+        <div class="merit-empty">Chưa có</div>
+      </div>
+    </aside>
+
+    <!-- 6. Sớ Vàng Xướng Tên Hồi Hướng Công Đức / Đọc Kinh -->
+    <div id="chant-toast" class="chant-toast hidden">
+      <div class="chant-toast-inner">
+        <div class="chant-toast-title" id="chant-toast-title">✦ HỒI HƯỚNG CÔNG ĐỨC ✦</div>
+        <div class="chant-toast-text" id="chant-toast-text">
+          Nam Mô A Di Đà Phật
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Thanh Công Cụ Nhanh (Tự ẩn khi không di chuột để quay ManyCam sạch 100%) -->
+    <div id="quick-toolbar" class="quick-toolbar">
+      <button id="btn-unlock-audio" class="toolbar-btn active-pulse" title="Bật Âm Thanh Chuông Mõ & Giọng Đọc Kinh">
+        🔊 Bật Âm Thanh
+      </button>
+      <div class="theme-Inline-group">
+        <button class="theme-btn active" data-theme="1">Mẫu 1</button>
+        <button class="theme-btn" data-theme="2">Mẫu 2</button>
+        <button class="theme-btn" data-theme="3">Mẫu 3</button>
+        <button class="theme-btn" data-theme="4">Mẫu 4</button>
+        <button class="theme-btn" data-theme="5">Mẫu 5</button>
+      </div>
+      <button id="btn-test-bell" class="toolbar-btn" title="Thỉnh Chuông">🔔 Chuông</button>
+      <button id="btn-test-chant" class="toolbar-btn" title="Thử Giọng Nam Ấm Đọc Kinh">📿 Đọc Kinh</button>
+      <a href="/admin" target="_blank" class="toolbar-btn" style="text-decoration:none; display:inline-flex; align-items:center;" title="Mở Bảng Điều Khiển Web Admin">⚙️ Web Admin</a>
+    </div>
+  </div>
+
+  <script src="/js/audioEngine.js"></script>
+  <script src="/js/templeScene.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

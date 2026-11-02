@@ -1,0 +1,17 @@
+{
+  "name": "thien-duong-tinh-tam-server",
+  "version": "1.0.0",
+  "description": "Backend Node.js + Live Overlay + TikFinity Bridge + Giọng Đọc Kinh cho App Live Stream Đi Chùa Bái Phật",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "msedge-tts": "^2.0.4",
+    "socket.io": "^4.8.1",
+    "tiktok-live-connector": "^2.5.0",
+    "ws": "^8.18.0"
+  }
+}

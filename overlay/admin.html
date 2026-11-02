@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảng Điều Khiển Web - Thiền Đường Tịnh Tâm</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+  <link rel="shortcut icon" href="/favicon.svg?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css" />
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <!-- Header Thanh Điều Khiển & Trạng Thái Trực Tuyến -->
+  <header class="admin-header">
+    <div class="admin-header-title">
+      <h1>🪷 THIỀN ĐƯỜNG TỊNH TÂM · QUẢN LÝ LIVE STREAM</h1>
+      <span id="badge-socket" class="status-badge">● Server Online</span>
+      <span id="badge-tiktok" class="status-badge disconnected">● TikTok: Chưa kết nối</span>
+      <span id="badge-seats" class="status-badge">● Đang thiền: 0/24</span>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-quick-bell" class="btn btn-gold" title="Thỉnh Đại Hồng Chung">🔔 Thỉnh Chuông</button>
+      <button id="btn-quick-fish" class="btn btn-gold" title="Gõ Mõ Tĩnh Tâm">🪵 Gõ Mõ</button>
+      <button id="btn-reload-overlay" class="btn btn-blue" title="Làm mới toàn bộ màn hình Overlay OBS Studio">🔄 Làm Mới Overlay</button>
+      <a href="/" target="_blank" class="btn btn-dark" style="text-decoration:none;">📺 Mở Overlay 9:16</a>
+      <button id="btn-logout" class="btn" style="background:#7f1d1d; border-color:#ef4444; color:#fee2e2;" title="Đăng xuất khỏi Bảng Điều Khiển">🚪 Đăng Xuất</button>
+    </div>
+  </header>
+
+  <!-- Lưới 4 Cột Điều Khiển Toàn Diện -->
+  <main class="admin-grid">
+    <!-- CỘT 1: 5 GIAO DIỆN CHÙA CHUYÊN NGHIỆP -->
+    <section class="admin-card">
+      <div class="card-title">
+        <span>🏛️ Giao Diện Chùa (5 Mẫu)</span>
+        <span id="txt-active-theme-name" style="font-size:0.82rem; color:var(--gold);">Mẫu 1</span>
+      </div>
+
+      <div class="preview-box">
+        <img id="theme-preview-img" src="/assets/backgrounds/theme_1_chanhdien.jpg" alt="Xem trước mẫu chùa" />
+      </div>
+
+      <div class="theme-selector">
+        <button class="theme-opt-btn active" data-theme="1">
+          <span style="font-size:1.2rem;">🏛️</span>
+          <div>
+            <strong>Mẫu 1: Chánh Điện Truyền Thống</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Cổ kính trang nghiêm, chư Phật mười phương</div>
+          </div>
+        </button>
+
+        <button class="theme-opt-btn" data-theme="2">
+          <span style="font-size:1.2rem;">🪷</span>
+          <div>
+            <strong>Mẫu 2: Liên Hoa Đêm Trăng</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Hồ sen tĩnh mịch, trăng rằm thanh tịnh</div>
+          </div>
+        </button>
+
+        <button class="theme-opt-btn" data-theme="3">
+          <span style="font-size:1.2rem;">🏰</span>
+          <div>
+            <strong>Mẫu 3: Tây Phương Cực Lạc</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Hoàng kim lộng lẫy, ao thất bảo sen ngàn cánh</div>
+          </div>
+        </button>
+
+        <button class="theme-opt-btn" data-theme="4">
+          <span style="font-size:1.2rem;">🎋</span>
+          <div>
+            <strong>Mẫu 4: Thiền Viện Trúc Lâm</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Rừng trúc Yên Tử thanh tịnh, thiền tịnh song tu</div>
+          </div>
+        </button>
+
+        <button class="theme-opt-btn" data-theme="5">
+          <span style="font-size:1.2rem;">🎮</span>
+          <div>
+            <strong>Mẫu 5: 3D Game Stylized</strong>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Đồ họa game hiện đại, ánh sáng ấm cúng</div>
+          </div>
+        </button>
+      </div>
+
+      <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">
+        💡 <em>Bấm chọn mẫu để chuyển ngay lập tức trên màn hình OBS Live Stream mà không cần dừng live.</em>
+      </div>
+    </section>
+
+    <!-- CỘT 2: GIỌNG ĐỌC KINH & ÂM THANH CHÙA -->
+    <section class="admin-card">
+      <div class="card-title">
+        <span>🎙️ Giọng Nam Đọc Kinh & Âm Thanh</span>
+        <button id="btn-save-voice" class="btn btn-green" style="padding:4px 10px; font-size:0.8rem;">💾 Lưu</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="select-voice-preset">Mẫu Giọng Đọc Cài Sẵn:</label>
+        <select id="select-voice-preset" class="form-select">
+          <option value="nam_nhuanduc" selected>Nam Ấm Trầm (Thích Nhuận Đức)</option>
+          <option value="nam_trungnien">Nam Trung Niên Trang Nghiêm (Minh Tuệ)</option>
+          <option value="nu_diudang">Nữ Dịu Dàng Truyền Cảm (Thảo Vy)</option>
+          <option value="chuong_tinh_tam">Chuông Mõ Tịnh Tâm (Thuần Âm Nhạc)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Độ Trầm Ấm Pitch (Hz):</label>
+        <div class="range-container">
+          <input type="range" id="slider-pitch" class="range-slider" min="-15" max="15" step="1" value="-3" />
+          <span id="val-pitch" class="range-val">-3 Hz</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tốc Độ Đọc Rate (%):</label>
+        <div class="range-container">
+          <input type="range" id="slider-rate" class="range-slider" min="-30" max="30" step="2" value="-8" />
+          <span id="val-rate" class="range-val">-8 %</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Độ Vang Chánh Điện Reverb:</label>
+        <div class="range-container">
+          <input type="range" id="slider-reverb" class="range-slider" min="0" max="1" step="0.05" value="0.28" />
+          <span id="val-reverb" class="range-val">0.28</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="select-bg-music">Nhạc Nền Thiền Định:</label>
+        <select id="select-bg-music" class="form-select">
+          <option value="zen_pentatonic_432" selected>🎶 Sáo Trúc & Nước Chảy (432Hz)</option>
+          <option value="duoc_su_mantra">📿 Kinh Dược Sư Trang Nghiêm</option>
+          <option value="dai_bi_mantra">🌊 Chú Đại Bi Huyền Bí</option>
+          <option value="piano_meditation">🎹 Nhạc Không Lời Tịnh Tâm</option>
+          <option value="adidaphat_chant">🪷 Niệm Phật A Di Đà</option>
+          <option value="tibetan_bowl">🔔 Chuông Bát Tây Tạng</option>
+          <option value="custom_mp3">📁 File Nhạc MP3 Máy Tính Tùy Chọn</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="group-custom-mp3" style="display:none;">
+        <label class="form-label">Đường Dẫn File MP3 Máy Tính:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="input-custom-mp3" class="form-control" placeholder="D:\Music\Kinh_A_Di_Da.mp3" />
+          <button id="btn-load-mp3" class="btn btn-gold" style="white-space:nowrap;">Nạp</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Âm Lượng Nhạc Nền:</label>
+        <div class="range-container">
+          <input type="range" id="slider-music-vol" class="range-slider" min="0" max="1" step="0.05" value="0.38" />
+          <span id="val-music-vol" class="range-val">38%</span>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top:6px;">
+        <button id="btn-test-tts" class="btn btn-blue" style="flex:1;">▶️ Nghe Thử TTS</button>
+        <button id="btn-trigger-chant" class="btn btn-gold" style="flex:1;">📿 Phát Kinh Live</button>
+      </div>
+    </section>
+
+    <!-- CỘT 3: QUY MÔ PHÒNG THIỀN & TÙY BIẾN KHUNG UI -->
+    <section class="admin-card">
+      <div class="card-title">
+        <span>🧘 Quy Mô & Vị Trí Khung Hướng Dẫn</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="select-slot-mode">Quy Mô Bồ Đoàn (Số Chỗ Ngồi):</label>
+        <select id="select-slot-mode" class="form-select">
+          <option value="auto">Co giãn tự động theo người xem</option>
+          <option value="tier_24" selected>24 Chỗ (4 hàng × 6 cột)</option>
+          <option value="tier_36">36 Chỗ (6 hàng × 6 cột)</option>
+          <option value="tier_48">48 Chỗ (6 hàng × 8 cột)</option>
+          <option value="tier_64">64 Chỗ (8 hàng × 8 cột)</option>
+          <option value="tier_100">100 Chỗ (10 hàng × 10 cột)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Điền Mẫu Thiền Sinh Nhanh:</label>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn btn-dark btn-fill-sample" data-count="15" style="flex:1;">15 Chỗ</button>
+          <button class="btn btn-dark btn-fill-sample" data-count="36" style="flex:1;">36 Chỗ</button>
+          <button class="btn btn-dark btn-fill-sample" data-count="64" style="flex:1;">64 Chỗ</button>
+          <button class="btn btn-dark btn-fill-sample" data-count="100" style="flex:1;">100 Chỗ</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <button id="btn-clear-seats" class="btn btn-red" style="width:100%;">🧹 Giải Phóng Toàn Bộ Bồ Đoàn</button>
+      </div>
+
+      <hr style="border:none; border-top:1px solid rgba(229,184,91,0.2); margin:6px 0;" />
+
+      <div class="card-title" style="padding-bottom:4px; font-size:0.95rem;">
+        <span>📐 Vị Trí Khung Hướng Dẫn (Không Che Thầy)</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="select-hud-pos">Vị Trí Khung Hướng Dẫn:</label>
+        <select id="select-hud-pos" class="form-select">
+          <option value="mid_left" selected>Bên Trái Giữa (Khuyên Dùng - Tránh Thầy)</option>
+          <option value="top_left">Góc Trên Trái (Cao Hơn)</option>
+          <option value="below_merit">Dưới Bảng Công Đức (Bên Phải)</option>
+          <option value="bottom_ticker">Chạy Chữ Dưới Đáy Màn Hình</option>
+          <option value="hidden">Tạm Ẩn Hoàn Toàn Khung</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Độ Lệch Dọc Y (Offset):</label>
+        <div class="range-container">
+          <input type="range" id="slider-hud-offsety" class="range-slider" min="-150" max="250" step="10" value="0" />
+          <span id="val-hud-offsety" class="range-val">0 px</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Độ Mờ Đục Opacity:</label>
+        <div class="range-container">
+          <input type="range" id="slider-hud-opacity" class="range-slider" min="0.3" max="1" step="0.05" value="0.95" />
+          <span id="val-hud-opacity" class="range-val">95%</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
+        <input type="checkbox" id="chk-hud-collapse" style="accent-color:var(--gold); width:18px; height:18px;" />
+        <label for="chk-hud-collapse" class="form-label" style="cursor:pointer; margin-bottom:0;">Gập gọn khung (Chỉ hiện thanh tiêu đề)</label>
+      </div>
+
+      <button id="btn-save-hud" class="btn btn-gold" style="width:100%; margin-top:4px;">💾 Áp Dụng Cấu Hình Khung Lên Live</button>
+    </section>
+
+    <!-- CỘT 4: GIẢ LẬP LIVE & QUÀ TẶNG TIKTOK -->
+    <section class="admin-card">
+      <div class="card-title">
+        <span>🤖 Giả Lập Live & Quà Tặng TikTok</span>
+      </div>
+
+      <!-- Kết nối TikTok Live Trực Tiếp -->
+      <div class="form-group">
+        <label class="form-label">Kết Nối TikTok Live Kênh Đang Phát:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="input-tiktok-username" class="form-control" placeholder="@username_kenh_tiktok" />
+          <button id="btn-tiktok-connect" class="btn btn-green" style="white-space:nowrap;">Kết Nối</button>
+          <button id="btn-tiktok-disconnect" class="btn btn-red" style="white-space:nowrap; display:none;">Ngắt</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <button id="btn-toggle-autodemo" class="btn btn-blue" style="width:100%;">🤖 Bật Giả Lập Tự Động (Auto-Demo)</button>
+      </div>
+
+      <hr style="border:none; border-top:1px solid rgba(229,184,91,0.2); margin:4px 0;" />
+
+      <!-- Simulator Thủ Công -->
+      <div class="form-row">
+        <div class="form-group" style="flex:1.2;">
+          <label class="form-label">Tên Người Xem:</label>
+          <input type="text" id="input-sim-nickname" class="form-control" value="Phật Tử Diệu Tâm" />
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Chọn 1 trong 19 Skin:</label>
+          <select id="select-sim-skin" class="form-select">
+            <option value="nam">👤 Nam Cư Sĩ</option>
+            <option value="nu">👩 Nữ Phật Tử</option>
+            <option value="su">🧘 Sư Thầy</option>
+            <option value="tieu">🧒 Chú Tiểu</option>
+            <option value="ni">🧕 Sư Cô Ni</option>
+            <option value="caotang">📿 Cao Tăng</option>
+            <option value="sen">🪷 Sen Vàng</option>
+            <option value="canhsat">👮 Cảnh Sát</option>
+            <option value="bacsi">🩺 Bác Sĩ</option>
+            <option value="trom">🦹 Hoàn Lương</option>
+            <option value="heo">🐷 Heo Bát Giới</option>
+            <option value="bo">🐂 Ngưu Ma Vương</option>
+            <option value="ga">🐔 Kim Kê / Gà</option>
+            <option value="hocsinh">🎒 Học Sinh</option>
+            <option value="duccha">✝️ Đức Cha</option>
+            <option value="thantai">💰 Thần Tài</option>
+            <option value="ninja">🥷 Ninja</option>
+            <option value="congchua">👑 Công Chúa</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bình Luận / Lời Khấn:</label>
+        <input type="text" id="input-sim-comment" class="form-control" value="Nam Mô A Di Đà Phật 🙏" />
+      </div>
+
+      <div class="form-row">
+        <button id="btn-sim-join" class="btn btn-gold" style="flex:1;">🙏 Vào Ngồi Thiền</button>
+        <button id="btn-sim-incense" class="btn btn-primary" style="flex:1.2;">🪔 Gõ adidaphat Cắm Nhang</button>
+      </div>
+
+      <!-- Tặng quà TikTok -->
+      <div class="form-group" style="margin-top:6px;">
+        <label class="form-label">Chọn Quà Tặng TikTok (<span id="txt-gift-count">723</span> quà):</label>
+        <div style="display:flex; gap:6px;">
+          <select id="select-sim-gift" class="form-select" style="flex:1;">
+            <option value="Hoa Sen Vàng" data-coins="10">Hoa Sen Vàng (10 xu)</option>
+          </select>
+          <input type="number" id="input-sim-repeat" class="form-control" value="1" min="1" max="99" style="width:65px; text-align:center;" title="Số lượng lặp lại" />
+        </div>
+      </div>
+
+      <button id="btn-sim-gift" class="btn btn-green" style="width:100%;">🎁 Tặng Quà & Xướng Tên Hồi Hướng</button>
+
+      <!-- Nhật Ký Hoạt Động Trực Tiếp -->
+      <div class="form-group" style="margin-top:6px;">
+        <label class="form-label">Nhật Ký Sự Kiện Trực Tiếp:</label>
+        <div id="live-log-box" class="log-box"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/audioEngine.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

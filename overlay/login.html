@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng Nhập Quản Trị - Thiền Đường Tịnh Tâm</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #140d07;
+      --card-bg: rgba(36, 22, 14, 0.92);
+      --card-border: rgba(228, 184, 88, 0.35);
+      --gold: #f6c453;
+      --gold-hover: #ffd976;
+      --gold-dark: #b8860b;
+      --text: #f5eedb;
+      --text-muted: #c2b199;
+      --danger: #ef4444;
+      --input-bg: #22140b;
+      --input-border: #4d3320;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at center, #2e1a0f 0%, #140d07 70%, #0a0603 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 36px 30px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), 0 0 35px rgba(246, 196, 83, 0.15);
+      backdrop-filter: blur(12px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #b8860b, #f6c453, #b8860b);
+    }
+    .lotus-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      background: radial-gradient(circle, rgba(246, 196, 83, 0.25) 0%, rgba(246, 196, 83, 0.05) 70%);
+      border: 1px solid rgba(246, 196, 83, 0.4);
+      border-radius: 50%;
+      font-size: 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 20px rgba(246, 196, 83, 0.2);
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    p.sub {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 26px;
+    }
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(246, 196, 83, 0.2);
+      background: #2a1a0e;
+    }
+    .btn-submit {
+      width: 100%;
+      margin-top: 10px;
+      padding: 13px;
+      background: linear-gradient(135deg, #d49a24 0%, #f6c453 50%, #b8860b 100%);
+      color: #1a0f05;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(246, 196, 83, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: linear-gradient(135deg, #e4a72d 0%, #ffd976 50%, #c89512 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(246, 196, 83, 0.45);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .alert-box {
+      display: none;
+      margin-bottom: 18px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      text-align: left;
+    }
+    .alert-box.show {
+      display: block;
+    }
+    .footer-link {
+      margin-top: 22px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .footer-link a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .footer-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="lotus-badge">🪷</div>
+    <h1>THIỀN ĐƯỜNG TỊNH TÂM</h1>
+    <p class="sub">Đăng nhập Bảng Điều Khiển Live Stream</p>
+
+    <div id="alert-box" class="alert-box"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Tài khoản quản trị</label>
+        <div class="input-wrap">
+          <input type="text" id="username" autocomplete="username" placeholder="Nhập tên tài khoản..." required autofocus />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <div class="input-wrap">
+          <input type="password" id="password" autocomplete="current-password" placeholder="Nhập mật khẩu..." required />
+        </div>
+      </div>
+
+      <button type="submit" id="btn-submit" class="btn-submit">
+        🔐 ĐĂNG NHẬP
+      </button>
+    </form>
+
+    <div class="footer-link">
+      <a href="/" target="_blank">📺 Quay lại Màn hình Live 9:16</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const alertBox = document.getElementById('alert-box');
+    const btnSubmit = document.getElementById('btn-submit');
+
+    function showError(msg) {
+      alertBox.textContent = '⚠️ ' + msg;
+      alertBox.classList.add('show');
+    }
+
+    function hideError() {
+      alertBox.textContent = '';
+      alertBox.classList.remove('show');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        showError('Vui lòng nhập đầy đủ tài khoản và mật khẩu!');
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = '⏳ Đang xác thực...';
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          // Lưu token nếu cần và chuyển hướng vào trang admin
+          if (data.token) {
+            localStorage.setItem('thien_duong_token', data.token);
+          }
+          window.location.href = '/admin';
+        } else {
+          showError(data.message || 'Tài khoản hoặc mật khẩu không chính xác!');
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = '🔐 ĐĂNG NHẬP';
+        }
+      } catch (err) {
+        showError('Lỗi kết nối tới máy chủ: ' + err.message);
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = '🔐 ĐĂNG NHẬP';
+      }
+    });
+  </script>
+</body>
+</html>
