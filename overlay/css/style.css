@@ -105,26 +105,26 @@ html, body {
 .seat-name-tag {
   position: absolute;
   transform: translate(-50%, -100%);
-  padding: 4px 14px;
+  padding: 5px 16px;
   border-radius: 999px;
-  background: rgba(34, 19, 8, 0.95);
-  border: 1.8px solid rgba(226, 184, 87, 0.95);
+  background: rgba(34, 19, 8, 0.96);
+  border: 2px solid rgba(226, 184, 87, 0.98);
   color: #fff8e7;
-  font-size: clamp(14px, 1.7vh, 24px);
-  font-weight: 700;
+  font-size: clamp(16px, 2.2vh, 30px);
+  font-weight: 800;
   white-space: nowrap;
-  max-width: 190px;
+  max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85);
   transition: transform 0.25s ease, border-color 0.3s ease;
 }
 
 .seat-name-tag.merit-vip {
   background: linear-gradient(90deg, #5c3409, #8c520d, #5c3409);
-  border: 2px solid #ffd700;
+  border: 2.4px solid #ffd700;
   color: #fffac2;
-  box-shadow: 0 0 14px rgba(255, 215, 0, 0.75);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.85);
 }
 
 /* Bong bóng lời cầu nguyện */
@@ -268,7 +268,7 @@ html, body {
 .left-guide-card {
   left: 2.3%;
   width: 36%;
-  font-size: clamp(14px, 1.8vh, 26px);
+  font-size: clamp(16px, 2.1vh, 32px);
   line-height: 1.48;
   user-select: none;
 }
@@ -448,7 +448,7 @@ html, body {
 }
 
 .merit-header {
-  font-size: clamp(14px, 1.8vh, 26px);
+  font-size: clamp(16px, 2.1vh, 30px);
   font-weight: 800;
   color: #fbd38d;
   margin-bottom: 0.6vh;
@@ -464,7 +464,7 @@ html, body {
 }
 
 .merit-empty {
-  font-size: clamp(13px, 1.6vh, 20px);
+  font-size: clamp(14px, 1.8vh, 24px);
   color: rgba(235, 216, 184, 0.72);
   padding: 0.4vh 0;
 }
@@ -473,8 +473,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: clamp(12.5px, 1.55vh, 22px);
-  padding: 4px 8px;
+  font-size: clamp(14px, 1.8vh, 26px);
+  padding: 5px 10px;
   border-radius: 6px;
   background: rgba(255, 215, 0, 0.12);
   border: 1px solid rgba(255, 215, 0, 0.35);
