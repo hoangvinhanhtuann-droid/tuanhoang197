@@ -36,6 +36,7 @@ class StatePersistence {
             guideOpacity: 0.85,
             guideCollapsed: false
           },
+          textConfig: this.seatManager.textConfig || {},
           ...extraData
         };
         fs.writeFileSync(STATE_FILE, JSON.stringify(payload, null, 2), 'utf8');
@@ -73,6 +74,9 @@ class StatePersistence {
       }
       if (data.hudConfig) {
         this.seatManager.hudConfig = { ...(this.seatManager.hudConfig || {}), ...data.hudConfig };
+      }
+      if (data.textConfig) {
+        this.seatManager.textConfig = { ...(this.seatManager.textConfig || {}), ...data.textConfig };
       }
 
       const occupiedCount = (this.seatManager.seats || []).filter(s => s.occupied).length;

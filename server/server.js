@@ -198,6 +198,24 @@ app.post('/api/hud/config', requireAuth, (req, res) => {
   res.json({ ok: true, hudConfig: updated });
 });
 
+// Cập nhật tùy chỉnh văn bản trên Overlay (Tên chùa, Phụ đề, Tên Thầy, Bảng hướng dẫn, Bảng công đức)
+app.post('/api/text/config', requireAuth, (req, res) => {
+  const updated = seatManager.updateTextConfig(req.body || {});
+  io.emit('text_config_changed', updated);
+  broadcastState();
+  console.log('[TextConfig] ✍️ Đã cập nhật văn bản màn hình Live');
+  res.json({ ok: true, textConfig: updated });
+});
+
+// Khôi phục văn bản mặc định theo mẫu Chùa
+app.post('/api/text/reset', requireAuth, (req, res) => {
+  const updated = seatManager.resetTextConfig();
+  io.emit('text_config_changed', updated);
+  broadcastState();
+  console.log('[TextConfig] 🔄 Đã khôi phục văn bản mặc định');
+  res.json({ ok: true, textConfig: updated });
+});
+
 // Làm mới toàn bộ màn hình Overlay (OBS Studio / Trình duyệt) tức thời
 app.post('/api/overlay/reload', requireAuth, (req, res) => {
   io.emit('reload_overlay', {});

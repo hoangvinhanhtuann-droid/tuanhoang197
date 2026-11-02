@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=6.2" />
+  <link rel="stylesheet" href="/css/style.css?v=6.3" />
   <!-- Three.js CDN cho hiệu ứng hạt 3D, Hào quang & Ánh sáng Chánh Điện -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -60,19 +60,19 @@
     <!-- Bảng Hướng Dẫn Bên Trái (Hỗ trợ kéo thả chuột, thu gọn và xoay vòng nội dung) -->
     <aside id="guide-card" class="info-card left-guide-card">
       <div id="guide-drag-handle" class="guide-card-header" title="Giữ chuột để kéo thả vị trí">
-        <span class="guide-header-title">✥ HƯỚNG DẪN</span>
+        <span class="guide-header-title" id="guide-title-text">✥ HƯỚNG DẪN</span>
         <button id="btn-toggle-guide" class="guide-btn-toggle" title="Thu nhỏ / Mở rộng">─</button>
       </div>
       
       <div class="guide-body-content">
         <div class="guide-block">
           <span class="guide-icon">💬</span>
-          <span class="guide-highlight">Bình luận bất kỳ</span> để vào thiền
+          <span id="guide-line-1"><span class="guide-highlight">Bình luận bất kỳ</span> để vào thiền</span>
         </div>
         <div class="guide-divider"></div>
         <div class="guide-block">
           <span class="guide-icon">🪔</span>
-          Gõ <b class="kw-gold">adidaphat</b> lên cắm nhang
+          <span id="guide-line-2">Gõ <b class="kw-gold">adidaphat</b> lên cắm nhang</span>
         </div>
         <div class="guide-divider"></div>
         
@@ -87,8 +87,8 @@
             <div><b class="kw-gold">heo</b> · <b class="kw-gold">bò</b> · <b class="kw-gold">gà</b> · <b class="kw-gold">trộm</b></div>
           </div>
           <div class="guide-carousel-slide" data-slide="2">
-            <div>🎁 <span class="guide-highlight">Tặng quà</span> được xướng tên</div>
-            <div class="kw-gold">✦ Hồi Hướng Công Đức ✦</div>
+            <div id="guide-line-3">🎁 <span class="guide-highlight">Tặng quà</span> được xướng tên</div>
+            <div id="guide-line-4" class="kw-gold">✦ Hồi Hướng Công Đức ✦</div>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@
 
     <!-- Bảng Công Đức Bên Phải -->
     <aside class="info-card right-merit-card">
-      <div class="merit-header">✦ Công Đức ✦</div>
+      <div id="merit-header-title" class="merit-header">✦ Công Đức ✦</div>
       <div id="merit-list-container" class="merit-body">
         <div class="merit-empty">Chưa có</div>
       </div>
@@ -130,8 +130,8 @@
     </div>
   </div>
 
-  <script src="/js/audioEngine.js?v=6.2"></script>
-  <script src="/js/templeScene.js?v=6.2"></script>
-  <script src="/js/app.js?v=6.2"></script>
+  <script src="/js/audioEngine.js?v=6.3"></script>
+  <script src="/js/templeScene.js?v=6.3"></script>
+  <script src="/js/app.js?v=6.3"></script>
 </body>
 </html>

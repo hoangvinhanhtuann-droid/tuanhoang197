@@ -663,6 +663,85 @@
     });
   });
 
+  // ==========================================================================
+  // 7. TÙY CHỈNH VĂN BẢN TRÊN MÀN HÌNH LIVE (TIÊU ĐỀ, TÊN THẦY, HƯỚNG DẪN)
+  // ==========================================================================
+  const inputTextBannerTitle = document.getElementById('input-text-banner-title');
+  const inputTextBannerSubtitle = document.getElementById('input-text-banner-subtitle');
+  const inputTextMonkLeft = document.getElementById('input-text-monk-left');
+  const inputTextMonkCenter = document.getElementById('input-text-monk-center');
+  const inputTextMonkRight = document.getElementById('input-text-monk-right');
+  const inputTextGuideTitle = document.getElementById('input-text-guide-title');
+  const inputTextGuideLine1 = document.getElementById('input-text-guide-line1');
+  const inputTextGuideLine2 = document.getElementById('input-text-guide-line2');
+  const inputTextGuideLine3 = document.getElementById('input-text-guide-line3');
+  const inputTextGuideLine4 = document.getElementById('input-text-guide-line4');
+  const inputTextMeritTitle = document.getElementById('input-text-merit-title');
+  const btnSaveTextConfig = document.getElementById('btn-save-text-config');
+  const btnResetTextConfig = document.getElementById('btn-reset-text-config');
+
+  function syncTextConfigUI(tc = {}) {
+    if (inputTextBannerTitle) inputTextBannerTitle.value = tc.bannerTitle || '';
+    if (inputTextBannerSubtitle) inputTextBannerSubtitle.value = tc.bannerSubtitle || '';
+    if (inputTextMonkLeft) inputTextMonkLeft.value = tc.monkLeft || 'Thầy Minh Đạo';
+    if (inputTextMonkCenter) inputTextMonkCenter.value = tc.monkCenter || 'Sư Trụ Trì';
+    if (inputTextMonkRight) inputTextMonkRight.value = tc.monkRight || 'Thầy Tâm Từ';
+    if (inputTextGuideTitle) inputTextGuideTitle.value = tc.guideTitle || 'HƯỚNG DẪN';
+    if (inputTextGuideLine1) inputTextGuideLine1.value = tc.guideLine1 || 'Bình luận bất kỳ để vào thiền';
+    if (inputTextGuideLine2) inputTextGuideLine2.value = tc.guideLine2 || 'Gõ adidaphat lên cắm nhang';
+    if (inputTextGuideLine3) inputTextGuideLine3.value = tc.guideLine3 || 'Tặng quà được xướng tên';
+    if (inputTextGuideLine4) inputTextGuideLine4.value = tc.guideLine4 || '✦ Hồi Hướng Công Đức ✦';
+    if (inputTextMeritTitle) inputTextMeritTitle.value = tc.meritTitle || '✦ Công Đức ✦';
+  }
+
+  if (btnSaveTextConfig) {
+    btnSaveTextConfig.addEventListener('click', () => {
+      const payload = {
+        bannerTitle: inputTextBannerTitle.value.trim(),
+        bannerSubtitle: inputTextBannerSubtitle.value.trim(),
+        monkLeft: inputTextMonkLeft.value.trim(),
+        monkCenter: inputTextMonkCenter.value.trim(),
+        monkRight: inputTextMonkRight.value.trim(),
+        guideTitle: inputTextGuideTitle.value.trim(),
+        guideLine1: inputTextGuideLine1.value.trim(),
+        guideLine2: inputTextGuideLine2.value.trim(),
+        guideLine3: inputTextGuideLine3.value.trim(),
+        guideLine4: inputTextGuideLine4.value.trim(),
+        meritTitle: inputTextMeritTitle.value.trim()
+      };
+
+      fetch('/api/text/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.ok) {
+          logActivity('✍️ Đã cập nhật văn bản lên Live thành công!', '#10b981');
+        }
+      });
+    });
+  }
+
+  if (btnResetTextConfig) {
+    btnResetTextConfig.addEventListener('click', () => {
+      if (!confirm('Khôi phục lại toàn bộ chữ mặc định theo mẫu Chùa?')) return;
+      fetch('/api/text/reset', { method: 'POST' })
+        .then(r => r.json())
+        .then(res => {
+          if (res && res.ok && res.textConfig) {
+            syncTextConfigUI(res.textConfig);
+            logActivity('🔄 Đã khôi phục chữ mặc định thành công!', '#fbbf24');
+          }
+        });
+    });
+  }
+
+  socket.on('text_config_changed', cfg => {
+    syncTextConfigUI(cfg);
+  });
+
   // Nạp trạng thái ban đầu qua GET /api/state
   fetch('/api/state')
     .then(r => r.json())
@@ -672,6 +751,7 @@
         if (state.voiceConfig) syncVoiceConfigUI(state.voiceConfig);
         if (state.voicePresets) voicePresets = state.voicePresets;
         if (state.hudConfig) syncHudConfigUI(state.hudConfig);
+        if (state.textConfig) syncTextConfigUI(state.textConfig);
         if (badgeSeats) badgeSeats.textContent = `● Đang thiền: ${state.occupiedCount}/${state.totalSeats}`;
       }
     })

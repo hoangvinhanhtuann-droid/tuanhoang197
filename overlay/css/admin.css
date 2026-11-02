@@ -81,10 +81,10 @@ body {
   gap: 10px;
 }
 
-/* Bố cục 4 cột Responsive */
+/* Bố cục Responsive linh hoạt cho các thẻ Card điều khiển */
 .admin-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 16px;
 }
 

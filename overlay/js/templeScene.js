@@ -260,7 +260,7 @@ class TempleSceneRenderer {
     this.seats.forEach(seat => {
       if (!seat.occupied || !seat.user) return;
       const proj = this.getSeatProjection(seat.row, seat.col);
-      const headOffset = 52 * proj.scale;
+      const headOffset = 42 * proj.scale;
 
       const tag = document.createElement('div');
       tag.className = 'seat-name-tag' + (seat.user.hasMeritAura ? ' merit-vip' : '');

@@ -66,14 +66,18 @@
     });
   });
 
+  let currentThemeObj = null;
+  let currentTextConfig = {};
+
   function applyTheme(theme) {
     if (!theme) return;
+    currentThemeObj = theme;
     document.body.className = `theme-${theme.id}`;
     if (bgLayer) {
       bgLayer.style.backgroundImage = `url('${theme.bgImage}')`;
     }
-    if (bannerTitle) bannerTitle.textContent = theme.title || 'THIỀN ĐƯỜNG TỊNH TÂM';
-    if (bannerSubtitle) bannerSubtitle.textContent = theme.subtitle || 'Nam Mô A Di Đà Phật';
+    if (bannerTitle) bannerTitle.textContent = currentTextConfig.bannerTitle || theme.title || 'THIỀN ĐƯỜNG TỊNH TÂM';
+    if (bannerSubtitle) bannerSubtitle.textContent = currentTextConfig.bannerSubtitle || theme.subtitle || 'Nam Mô A Di Đà Phật';
 
     themeButtons.forEach(btn => {
       const btnId = Number(btn.getAttribute('data-theme'));
@@ -82,6 +86,56 @@
 
     if (window.templeScene) {
       window.templeScene.setTheme(theme.id);
+    }
+  }
+
+  function applyTextConfig(cfg) {
+    if (!cfg) return;
+    currentTextConfig = { ...currentTextConfig, ...cfg };
+
+    if (bannerTitle) {
+      bannerTitle.textContent = currentTextConfig.bannerTitle || (currentThemeObj && currentThemeObj.title) || 'THIỀN ĐƯỜNG TỊNH TÂM';
+    }
+    if (bannerSubtitle) {
+      bannerSubtitle.textContent = currentTextConfig.bannerSubtitle || (currentThemeObj && currentThemeObj.subtitle) || 'Nam Mô A Di Đà Phật';
+    }
+
+    const tagMonkLeft = document.getElementById('tag-thay-minh-dao');
+    const tagMonkCenter = document.getElementById('tag-su-tru-tri');
+    const tagMonkRight = document.getElementById('tag-thay-tam-tu');
+
+    if (tagMonkLeft && currentTextConfig.monkLeft) tagMonkLeft.textContent = currentTextConfig.monkLeft;
+    if (tagMonkCenter && currentTextConfig.monkCenter) tagMonkCenter.textContent = currentTextConfig.monkCenter;
+    if (tagMonkRight && currentTextConfig.monkRight) tagMonkRight.textContent = currentTextConfig.monkRight;
+
+    const guideTitleEl = document.getElementById('guide-title-text');
+    if (guideTitleEl && currentTextConfig.guideTitle) {
+      guideTitleEl.textContent = '✥ ' + currentTextConfig.guideTitle.replace(/^✥\s*/, '');
+    }
+
+    const guideLine1El = document.getElementById('guide-line-1');
+    if (guideLine1El && currentTextConfig.guideLine1) {
+      guideLine1El.innerHTML = currentTextConfig.guideLine1;
+    }
+
+    const guideLine2El = document.getElementById('guide-line-2');
+    if (guideLine2El && currentTextConfig.guideLine2) {
+      guideLine2El.innerHTML = currentTextConfig.guideLine2;
+    }
+
+    const guideLine3El = document.getElementById('guide-line-3');
+    if (guideLine3El && currentTextConfig.guideLine3) {
+      guideLine3El.innerHTML = currentTextConfig.guideLine3;
+    }
+
+    const guideLine4El = document.getElementById('guide-line-4');
+    if (guideLine4El && currentTextConfig.guideLine4) {
+      guideLine4El.innerHTML = currentTextConfig.guideLine4;
+    }
+
+    const meritTitleEl = document.getElementById('merit-header-title');
+    if (meritTitleEl && currentTextConfig.meritTitle) {
+      meritTitleEl.textContent = currentTextConfig.meritTitle;
     }
   }
 
@@ -140,6 +194,12 @@
     }
     if (state.theme) {
       applyTheme(state.theme);
+    }
+    if (state.hudConfig) {
+      applyHudConfig(state.hudConfig);
+    }
+    if (state.textConfig) {
+      applyTextConfig(state.textConfig);
     }
     if (state.voiceConfig && window.templeAudio) {
       window.templeAudio.updateConfig(state.voiceConfig);
@@ -404,6 +464,10 @@
 
   socket.on('hud_config_changed', cfg => {
     applyHudConfig(cfg);
+  });
+
+  socket.on('text_config_changed', cfg => {
+    applyTextConfig(cfg);
   });
 
   socket.on('reload_overlay', () => {

@@ -322,6 +322,77 @@
         <div id="live-log-box" class="log-box"></div>
       </div>
     </section>
+
+    <!-- CỘT 5: TÙY CHỈNH VĂN BẢN TRÊN MÀN HÌNH LIVE -->
+    <section class="admin-card">
+      <div class="card-title">
+        <span>✍️ Tùy Chỉnh Văn Bản Trên Live</span>
+      </div>
+
+      <!-- 1. Tiêu Đề Chùa & Phụ Đề -->
+      <div class="form-group">
+        <label class="form-label">Tên Chùa / Tiêu Đề Chính:</label>
+        <input type="text" id="input-text-banner-title" class="form-control" placeholder="Để trống = Tự đổi theo Mẫu Chùa" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Câu Niệm / Phụ Đề:</label>
+        <input type="text" id="input-text-banner-subtitle" class="form-control" placeholder="Để trống = Tự đổi theo Mẫu Chùa" />
+      </div>
+
+      <hr style="border:none; border-top:1px solid rgba(229,184,91,0.2); margin:8px 0;" />
+
+      <!-- 2. Tên 3 Vị Thầy Trụ Trì -->
+      <div class="form-group">
+        <label class="form-label">Tên 3 Vị Thầy (Trái · Giữa · Phải):</label>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+          <input type="text" id="input-text-monk-left" class="form-control" placeholder="Thầy Trái" value="Thầy Minh Đạo" />
+          <input type="text" id="input-text-monk-center" class="form-control" placeholder="Thầy Giữa" value="Sư Trụ Trì" />
+          <input type="text" id="input-text-monk-right" class="form-control" placeholder="Thầy Phải" value="Thầy Tâm Từ" />
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid rgba(229,184,91,0.2); margin:8px 0;" />
+
+      <!-- 3. Nội Dung Bảng Hướng Dẫn -->
+      <div class="form-group">
+        <label class="form-label">Tiêu Đề Bảng Hướng Dẫn:</label>
+        <input type="text" id="input-text-guide-title" class="form-control" value="HƯỚNG DẪN" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dòng 1 Hướng Dẫn:</label>
+        <input type="text" id="input-text-guide-line1" class="form-control" value="Bình luận bất kỳ để vào thiền" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dòng 2 Hướng Dẫn:</label>
+        <input type="text" id="input-text-guide-line2" class="form-control" value="Gõ adidaphat lên cắm nhang" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dòng 3 (Tặng Quà):</label>
+        <input type="text" id="input-text-guide-line3" class="form-control" value="Tặng quà được xướng tên" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dòng 4 (Hồi Hướng):</label>
+        <input type="text" id="input-text-guide-line4" class="form-control" value="✦ Hồi Hướng Công Đức ✦" />
+      </div>
+
+      <hr style="border:none; border-top:1px solid rgba(229,184,91,0.2); margin:8px 0;" />
+
+      <!-- 4. Tiêu Đề Bảng Công Đức -->
+      <div class="form-group">
+        <label class="form-label">Tiêu Đề Bảng Công Đức:</label>
+        <input type="text" id="input-text-merit-title" class="form-control" value="✦ Công Đức ✦" />
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button id="btn-save-text-config" class="btn btn-gold" style="flex:1;">💾 Lưu & Áp Dụng Lên Live</button>
+        <button id="btn-reset-text-config" class="btn btn-dark" style="white-space:nowrap;" title="Khôi phục lại toàn bộ chữ mặc định">🔄 Mặc Định</button>
+      </div>
+    </section>
   </main>
 
   <script src="/js/audioEngine.js"></script>

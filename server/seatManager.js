@@ -385,6 +385,19 @@ class SeatManager {
       guideCollapsed: false,
       carouselSpeedSec: 6
     };
+    this.textConfig = {
+      bannerTitle: '',
+      bannerSubtitle: '',
+      monkLeft: 'Thầy Minh Đạo',
+      monkCenter: 'Sư Trụ Trì',
+      monkRight: 'Thầy Tâm Từ',
+      guideTitle: 'HƯỚNG DẪN',
+      guideLine1: 'Bình luận bất kỳ để vào thiền',
+      guideLine2: 'Gõ adidaphat lên cắm nhang',
+      guideLine3: 'Tặng quà được xướng tên',
+      guideLine4: '✦ Hồi Hướng Công Đức ✦',
+      meritTitle: '✦ Công Đức ✦'
+    };
     this.chantIndex = 0;
   }
 
@@ -781,6 +794,31 @@ class SeatManager {
     return this.hudConfig;
   }
 
+  updateTextConfig(partial = {}) {
+    this.textConfig = {
+      ...this.textConfig,
+      ...partial
+    };
+    return this.textConfig;
+  }
+
+  resetTextConfig() {
+    this.textConfig = {
+      bannerTitle: '',
+      bannerSubtitle: '',
+      monkLeft: 'Thầy Minh Đạo',
+      monkCenter: 'Sư Trụ Trì',
+      monkRight: 'Thầy Tâm Từ',
+      guideTitle: 'HƯỚNG DẪN',
+      guideLine1: 'Bình luận bất kỳ để vào thiền',
+      guideLine2: 'Gõ adidaphat lên cắm nhang',
+      guideLine3: 'Tặng quà được xướng tên',
+      guideLine4: '✦ Hồi Hướng Công Đức ✦',
+      meritTitle: '✦ Công Đức ✦'
+    };
+    return this.textConfig;
+  }
+
   getNextScriptureChant() {
     const text = SCRIPTURE_CHANTS[this.chantIndex % SCRIPTURE_CHANTS.length];
     this.chantIndex++;
@@ -798,6 +836,7 @@ class SeatManager {
       bgMusicTracks: BG_MUSIC_TRACKS,
       voiceConfig: this.voiceConfig,
       hudConfig: this.hudConfig,
+      textConfig: this.textConfig,
       sessionStartTime: this.sessionStartTime,
       slotMode: this.slotMode,
       gridCols: this.currentTier.cols,
