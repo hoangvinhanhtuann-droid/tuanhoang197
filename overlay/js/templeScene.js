@@ -40,7 +40,7 @@ class TempleSceneRenderer {
       antialias: true,
       powerPreference: 'high-performance'
     });
-    this.renderer.setPixelRatio(Math.max(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 
     // 1. Vòng Hào Quang Phật (Tỏa sáng nhẹ phía sau đầu tượng Phật)
     const haloGeo = new THREE.RingGeometry(0.95, 1.45, 48);
@@ -141,8 +141,9 @@ class TempleSceneRenderer {
     const container = document.getElementById('stage-container');
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    // Luôn nâng độ phân giải tối thiểu 2x (Full HD / Super-sampling) để hình ảnh sắc nét tuyệt đối
-    const dpr = Math.max(window.devicePixelRatio || 1, 2);
+    // Tối ưu cân bằng giữa độ nét tuyệt đối và độ mượt 60 FPS:
+    // Giữ canvas ở chuẩn Full HD 1080p, tránh đẩy lên 4K gây giật lag
+    const dpr = rect.width >= 1000 ? 1 : Math.min(2, Math.max(1, 1080 / rect.width));
 
     this.width = rect.width;
     this.height = rect.height;
