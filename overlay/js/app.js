@@ -24,9 +24,8 @@
 
   // Mở khóa âm thanh khi click vào bất kỳ đâu trên màn hình Overlay
   function unlockAudio() {
-    if (window.templeAudio && !window.templeAudio.unlocked) {
+    if (window.templeAudio) {
       window.templeAudio.initContext();
-      window.templeAudio.playTempleBell(0.75);
       if (btnUnlockAudio) {
         btnUnlockAudio.textContent = '🔊 Đã Bật Âm';
         btnUnlockAudio.classList.remove('active-pulse');
@@ -34,6 +33,9 @@
     }
   }
   window.addEventListener('pointerdown', unlockAudio, { once: false });
+  window.addEventListener('DOMContentLoaded', unlockAudio);
+  window.addEventListener('load', unlockAudio);
+  socket.on('connect', unlockAudio);
 
   if (btnUnlockAudio) {
     btnUnlockAudio.addEventListener('click', unlockAudio);

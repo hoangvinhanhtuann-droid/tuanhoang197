@@ -31,24 +31,37 @@ class TempleAudioEngine {
       warmthDb: 4.5,
       playbackRate: 0.93
     };
+
+    // Tự động khởi tạo âm thanh ngay khi nạp (tương thích OBS & TikTok Live Studio)
+    setTimeout(() => this.initContext(), 100);
   }
 
   initContext() {
-    if (!this.ctx) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioCtx();
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.95;
-      this.masterGain.connect(this.ctx.destination);
+    try {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.95;
+        this.masterGain.connect(this.ctx.destination);
 
-      this.reverbNode = this.createTempleReverbImpulse(2.4, 2.2);
+        this.reverbNode = this.createTempleReverbImpulse(2.4, 2.2);
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+      this.unlocked = true;
+      this.startWoodenFishLoop();
+      this.restartAmbientMusic();
+    } catch (err) {
+      console.warn('[Audio] Auto init context deferred:', err.message);
     }
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+  }
+
+  ensureUnlocked() {
+    if (!this.ctx || !this.unlocked || (this.ctx && this.ctx.state === 'suspended')) {
+      this.initContext();
     }
-    this.unlocked = true;
-    this.startWoodenFishLoop();
-    this.restartAmbientMusic();
   }
 
   createTempleReverbImpulse(durationSec = 2.4, decay = 2.2) {
@@ -101,7 +114,8 @@ class TempleAudioEngine {
    * Tiếng Chuông Chùa / Chuông Xoay Ngân Vang (432Hz Spiritual Tuning)
    */
   playTempleBell(intensity = 1.0) {
-    if (!this.unlocked || !this.config.bellEnabled) return;
+    this.ensureUnlocked();
+    if (!this.ctx || !this.config.bellEnabled) return;
     const now = this.ctx.currentTime;
     const partials = [
       { freq: 216, amp: 0.42, decay: 4.2 },
@@ -132,7 +146,8 @@ class TempleAudioEngine {
    * Tiếng Mõ Gỗ Chánh Điện ("Cốc... Cốc...")
    */
   playWoodenFish() {
-    if (!this.unlocked) return;
+    this.ensureUnlocked();
+    if (!this.ctx) return;
     const now = this.ctx.currentTime;
 
     const osc = this.ctx.createOscillator();
@@ -194,7 +209,8 @@ class TempleAudioEngine {
       this.customAudioEl = null;
     }
 
-    if (!this.unlocked || !this.config.bgMusicEnabled) return;
+    this.ensureUnlocked();
+    if (!this.ctx || !this.config.bgMusicEnabled) return;
 
     const track = this.config.bgMusicTrack || 'zen_pentatonic_432';
 
@@ -208,7 +224,8 @@ class TempleAudioEngine {
     }
 
     const stepTick = () => {
-      if (!this.unlocked || !this.config.bgMusicEnabled) return;
+      this.ensureUnlocked();
+    if (!this.ctx || !this.config.bgMusicEnabled) return;
       const baseVol = (Number(this.config.bgMusicVolume) || 0.38) * (this.isSpeaking ? 0.08 : 0.22);
       const t = this.config.bgMusicTrack || 'zen_pentatonic_432';
 
