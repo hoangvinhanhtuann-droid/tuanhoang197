@@ -37,9 +37,10 @@ class TempleSceneRenderer {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.threeCanvas,
       alpha: true,
-      antialias: true
+      antialias: true,
+      powerPreference: 'high-performance'
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.max(window.devicePixelRatio || 1, 2));
 
     // 1. Vòng Hào Quang Phật (Tỏa sáng nhẹ phía sau đầu tượng Phật)
     const haloGeo = new THREE.RingGeometry(0.95, 1.45, 48);
@@ -140,7 +141,8 @@ class TempleSceneRenderer {
     const container = document.getElementById('stage-container');
     if (!container) return;
     const rect = container.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Luôn nâng độ phân giải tối thiểu 2x (Full HD / Super-sampling) để hình ảnh sắc nét tuyệt đối
+    const dpr = Math.max(window.devicePixelRatio || 1, 2);
 
     this.width = rect.width;
     this.height = rect.height;
@@ -148,8 +150,11 @@ class TempleSceneRenderer {
     this.sceneCanvas.width = Math.round(rect.width * dpr);
     this.sceneCanvas.height = Math.round(rect.height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
 
     if (this.renderer && this.camera) {
+      this.renderer.setPixelRatio(dpr);
       this.renderer.setSize(rect.width, rect.height, false);
       this.camera.aspect = rect.width / rect.height;
       this.camera.updateProjectionMatrix();
