@@ -72,16 +72,16 @@ html, body {
 .monk-tag {
   position: absolute;
   transform: translate(-50%, -50%);
-  padding: 4px 13px;
+  padding: 6px 18px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(68, 38, 13, 0.92) 0%, rgba(36, 18, 5, 0.95) 100%);
-  border: 1.5px solid #e2b857;
+  background: linear-gradient(180deg, rgba(68, 38, 13, 0.94) 0%, rgba(36, 18, 5, 0.96) 100%);
+  border: 2px solid #e2b857;
   color: #fff6d6;
-  font-size: clamp(10px, 1.5vh, 14px);
+  font-size: clamp(14px, 1.8vh, 26px);
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65), 0 0 8px rgba(246, 201, 92, 0.35);
-  letter-spacing: 0.2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75), 0 0 12px rgba(246, 201, 92, 0.45);
+  letter-spacing: 0.3px;
 }
 
 .monk-left {
@@ -93,7 +93,7 @@ html, body {
   left: 50%;
   top: 55.2%;
   border-color: #ffd76a;
-  background: linear-gradient(180deg, rgba(92, 48, 10, 0.95) 0%, rgba(45, 22, 4, 0.97) 100%);
+  background: linear-gradient(180deg, rgba(92, 48, 10, 0.96) 0%, rgba(45, 22, 4, 0.98) 100%);
 }
 
 .monk-right {
@@ -105,43 +105,43 @@ html, body {
 .seat-name-tag {
   position: absolute;
   transform: translate(-50%, -100%);
-  padding: 2px 9px;
+  padding: 3px 12px;
   border-radius: 999px;
-  background: rgba(34, 19, 8, 0.88);
-  border: 1px solid rgba(226, 184, 87, 0.8);
+  background: rgba(34, 19, 8, 0.92);
+  border: 1.5px solid rgba(226, 184, 87, 0.9);
   color: #fff8e7;
-  font-size: clamp(9px, 1.18vh, 12px);
-  font-weight: 600;
+  font-size: clamp(12px, 1.55vh, 22px);
+  font-weight: 700;
   white-space: nowrap;
-  max-width: 110px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
   transition: transform 0.25s ease, border-color 0.3s ease;
 }
 
 .seat-name-tag.merit-vip {
   background: linear-gradient(90deg, #5c3409, #8c520d, #5c3409);
-  border: 1.5px solid #ffd700;
+  border: 2px solid #ffd700;
   color: #fffac2;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.65);
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.75);
 }
 
 /* Bong bóng lời cầu nguyện */
 .prayer-bubble {
   position: absolute;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 248, 224, 0.95);
+  background: rgba(255, 248, 224, 0.97);
   color: #4a2508;
-  border: 1px solid #d69e2e;
-  border-radius: 10px;
-  padding: 2px 7px;
-  font-size: clamp(8px, 1.02vh, 10.5px);
-  font-weight: 600;
+  border: 1.5px solid #d69e2e;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: clamp(12px, 1.45vh, 20px);
+  font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
   animation: floatPrayer 4.5s ease-out forwards;
 }
 
@@ -167,11 +167,11 @@ html, body {
 
 .temple-banner {
   width: 100%;
-  padding: 1.15vh 3.5%;
+  padding: 1.2vh 3.5%;
   border-radius: 999px;
   background: radial-gradient(ellipse at center, rgba(64, 34, 13, 0.94) 0%, rgba(28, 14, 5, 0.96) 100%);
-  border: 1.6px solid rgba(229, 184, 91, 0.88);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(245, 198, 93, 0.22);
+  border: 2px solid rgba(229, 184, 91, 0.95);
+  box-shadow: 0 5px 24px rgba(0, 0, 0, 0.8), inset 0 0 18px rgba(245, 198, 93, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -180,10 +180,10 @@ html, body {
 
 .banner-lotus-icon {
   position: absolute;
-  left: 4.5%;
-  font-size: clamp(18px, 2.7vh, 26px);
+  left: 4%;
+  font-size: clamp(24px, 3.2vh, 46px);
   color: #e6b95c;
-  text-shadow: 0 0 8px rgba(246, 204, 102, 0.55);
+  text-shadow: 0 0 12px rgba(246, 204, 102, 0.7);
 }
 
 .banner-texts {
@@ -192,61 +192,62 @@ html, body {
 
 #banner-title {
   font-family: 'Noto Serif', serif;
-  font-size: clamp(15px, 2.38vh, 24px);
-  font-weight: 700;
+  font-size: clamp(20px, 2.8vh, 38px);
+  font-weight: 800;
   color: #ebd094;
-  letter-spacing: 1.2px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
 #banner-subtitle {
-  font-size: clamp(10px, 1.38vh, 14px);
-  color: #d7be8c;
-  letter-spacing: 2px;
-  margin-top: 2px;
+  font-size: clamp(14px, 1.8vh, 24px);
+  font-weight: 600;
+  color: #ffd996;
+  letter-spacing: 2.2px;
+  margin-top: 3px;
 }
 
 .status-pills {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .status-pill {
-  height: 4.2vh;
-  min-width: 118px;
-  padding: 0 14px;
+  height: 4.8vh;
+  min-width: 140px;
+  padding: 0 18px;
   border-radius: 999px;
-  background: rgba(31, 18, 9, 0.88);
-  border: 1.2px solid rgba(204, 161, 82, 0.68);
+  background: rgba(31, 18, 9, 0.92);
+  border: 1.6px solid rgba(204, 161, 82, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 9px;
   color: #fff6e0;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
 }
 
 .green-dot {
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: #38d353;
-  box-shadow: 0 0 8px #38d353;
+  box-shadow: 0 0 10px #38d353;
 }
 
 #seat-counter,
 #session-timer {
-  font-size: clamp(12px, 1.65vh, 16px);
-  font-weight: 700;
+  font-size: clamp(16px, 2.2vh, 28px);
+  font-weight: 800;
 }
 
 .pill-sub {
-  font-size: clamp(8.5px, 1.1vh, 11px);
-  line-height: 1.05;
+  font-size: clamp(12px, 1.5vh, 20px);
+  line-height: 1.1;
   color: #e2d1b0;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* 5. Hai Bảng Thông Tin Trái / Phải */
@@ -266,9 +267,9 @@ html, body {
 
 .left-guide-card {
   left: 2.3%;
-  width: 29.5%;
-  font-size: clamp(9px, 1.22vh, 12.2px);
-  line-height: 1.32;
+  width: 33%;
+  font-size: clamp(13px, 1.65vh, 22px);
+  line-height: 1.42;
   user-select: none;
 }
 
@@ -437,29 +438,29 @@ html, body {
 
 .right-merit-card {
   right: 2.3%;
-  width: 26.5%;
+  width: 29%;
   min-height: 7.2vh;
   text-align: center;
 }
 
 .merit-header {
-  font-size: clamp(11px, 1.45vh, 14.5px);
-  font-weight: 700;
+  font-size: clamp(14px, 1.8vh, 26px);
+  font-weight: 800;
   color: #fbd38d;
-  margin-bottom: 0.5vh;
-  letter-spacing: 0.4px;
+  margin-bottom: 0.6vh;
+  letter-spacing: 0.6px;
 }
 
 .merit-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  max-height: 13vh;
+  gap: 4px;
+  max-height: 14vh;
   overflow: hidden;
 }
 
 .merit-empty {
-  font-size: clamp(10px, 1.3vh, 13px);
+  font-size: clamp(13px, 1.6vh, 20px);
   color: rgba(235, 216, 184, 0.72);
   padding: 0.4vh 0;
 }
@@ -468,16 +469,16 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: clamp(9px, 1.18vh, 11.8px);
-  padding: 2px 5px;
+  font-size: clamp(12.5px, 1.55vh, 22px);
+  padding: 4px 8px;
   border-radius: 6px;
-  background: rgba(255, 215, 0, 0.1);
-  border: 1px solid rgba(255, 215, 0, 0.25);
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.35);
   color: #fff6d1;
 }
 
 .merit-item-name {
-  font-weight: 600;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -486,8 +487,8 @@ html, body {
 
 .merit-item-pts {
   color: #ffd700;
-  font-weight: 700;
-  font-size: 0.92em;
+  font-weight: 800;
+  font-size: 0.95em;
 }
 
 /* 6. Sớ Vàng Xướng Tên Hồi Hướng / Đọc Kinh */
@@ -510,25 +511,25 @@ html, body {
   background: linear-gradient(135deg, rgba(74, 35, 6, 0.96), rgba(40, 17, 3, 0.97));
   border: 2px solid #ffd700;
   border-radius: 16px;
-  padding: 1.4vh 16px;
+  padding: 1.6vh 20px;
   text-align: center;
-  box-shadow: 0 0 30px rgba(255, 208, 0, 0.55), inset 0 0 18px rgba(255, 215, 0, 0.25);
+  box-shadow: 0 0 35px rgba(255, 208, 0, 0.65), inset 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 .chant-toast-title {
   color: #ffd700;
   font-family: 'Noto Serif', serif;
-  font-size: clamp(12px, 1.65vh, 16px);
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  margin-bottom: 4px;
+  font-size: clamp(16px, 2.2vh, 32px);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
 }
 
 .chant-toast-text {
   color: #fff9e6;
-  font-size: clamp(11px, 1.42vh, 14px);
+  font-size: clamp(15px, 1.9vh, 26px);
   line-height: 1.45;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* 7. Thanh Công Cụ Nhanh (Tự mờ khi không rê chuột) */
