@@ -72,16 +72,16 @@ html, body {
 .monk-tag {
   position: absolute;
   transform: translate(-50%, -50%);
-  padding: 6px 18px;
+  padding: 6px 20px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(68, 38, 13, 0.94) 0%, rgba(36, 18, 5, 0.96) 100%);
-  border: 2px solid #e2b857;
+  background: linear-gradient(180deg, rgba(68, 38, 13, 0.96) 0%, rgba(36, 18, 5, 0.98) 100%);
+  border: 2.2px solid #ffd76a;
   color: #fff6d6;
-  font-size: clamp(14px, 1.8vh, 26px);
-  font-weight: 700;
+  font-size: clamp(15px, 2.0vh, 28px);
+  font-weight: 800;
   white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75), 0 0 12px rgba(246, 201, 92, 0.45);
-  letter-spacing: 0.3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 14px rgba(246, 201, 92, 0.5);
+  letter-spacing: 0.4px;
 }
 
 .monk-left {
@@ -105,18 +105,18 @@ html, body {
 .seat-name-tag {
   position: absolute;
   transform: translate(-50%, -100%);
-  padding: 3px 12px;
+  padding: 4px 14px;
   border-radius: 999px;
-  background: rgba(34, 19, 8, 0.92);
-  border: 1.5px solid rgba(226, 184, 87, 0.9);
+  background: rgba(34, 19, 8, 0.95);
+  border: 1.8px solid rgba(226, 184, 87, 0.95);
   color: #fff8e7;
-  font-size: clamp(12px, 1.55vh, 22px);
+  font-size: clamp(14px, 1.7vh, 24px);
   font-weight: 700;
   white-space: nowrap;
-  max-width: 160px;
+  max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.75);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
   transition: transform 0.25s ease, border-color 0.3s ease;
 }
 
@@ -152,10 +152,10 @@ html, body {
   100% { opacity: 0; transform: translate(-50%, -12px) scale(0.95); }
 }
 
-/* 4. Header Banner Đỉnh */
+/* 4. Header Banner Đỉnh - Đẩy xuống thấp hơn để không bị che bởi khung avatar & xếp hạng của TikTok */
 .top-hud {
   position: absolute;
-  top: 3.5%;
+  top: 7.2%;
   left: 4.5%;
   right: 4.5%;
   z-index: 6;
@@ -253,23 +253,23 @@ html, body {
 /* 5. Hai Bảng Thông Tin Trái / Phải */
 .info-card {
   position: absolute;
-  top: 25.5%;
+  top: 27.5%;
   z-index: 6;
-  background: rgba(38, 20, 8, 0.85);
-  backdrop-filter: blur(6px);
-  border: 1.2px solid rgba(212, 167, 85, 0.72);
-  border-radius: 12px;
-  padding: 0.8vh 10px;
+  background: rgba(38, 20, 8, 0.90);
+  backdrop-filter: blur(8px);
+  border: 1.8px solid rgba(212, 167, 85, 0.85);
+  border-radius: 14px;
+  padding: 1vh 12px;
   color: #f7ebd2;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
   transition: opacity 0.3s ease, transform 0.25s ease, top 0.35s ease, left 0.35s ease, right 0.35s ease;
 }
 
 .left-guide-card {
   left: 2.3%;
-  width: 33%;
-  font-size: clamp(13px, 1.65vh, 22px);
-  line-height: 1.42;
+  width: 36%;
+  font-size: clamp(14px, 1.8vh, 26px);
+  line-height: 1.48;
   user-select: none;
 }
 
@@ -278,10 +278,10 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   cursor: grab;
-  padding-bottom: 3px;
-  border-bottom: 1px dashed rgba(229, 184, 91, 0.3);
+  padding-bottom: 4px;
+  border-bottom: 1.5px dashed rgba(229, 184, 91, 0.45);
 }
 
 .guide-card-header:active {
@@ -289,13 +289,13 @@ html, body {
 }
 
 .guide-header-title {
-  font-size: 0.88em;
-  font-weight: 700;
+  font-size: 1.05em;
+  font-weight: 800;
   color: #f6c453;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .guide-btn-toggle {
@@ -426,20 +426,24 @@ html, body {
 }
 
 .kw-gold {
-  color: #fbbf24;
-  font-weight: 700;
+  color: #ffd700;
+  font-weight: 800;
+  font-size: 1.05em;
+  padding: 1px 4px;
+  background: rgba(255, 215, 0, 0.18);
+  border-radius: 4px;
 }
 
 .guide-divider {
   height: 1px;
-  background: rgba(218, 173, 88, 0.25);
-  margin: 0.4vh 0;
+  background: rgba(218, 173, 88, 0.35);
+  margin: 0.5vh 0;
 }
 
 .right-merit-card {
   right: 2.3%;
-  width: 29%;
-  min-height: 7.2vh;
+  width: 32%;
+  min-height: 8vh;
   text-align: center;
 }
 
