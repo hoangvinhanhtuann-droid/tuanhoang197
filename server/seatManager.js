@@ -241,45 +241,90 @@ const VOICE_PRESETS = {
     id: 'nam_tram_doc_kinh',
     name: 'Giọng Nam Trầm Ấm Đọc Kinh (Khuyên dùng)',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -18,
-    ratePercent: -20,
+    pitchHz: -8,
+    ratePercent: -10,
     reverbLevel: 0.28,
     warmthDb: 4.5,
-    playbackRate: 0.93,
-    mciSpeed: 930
+    playbackRate: 0.92,
+    mciSpeed: 920
   },
   lao_hoa_thuong: {
     id: 'lao_hoa_thuong',
     name: 'Giọng Lão Hòa Thượng Uy Nghiêm (Trầm Sâu)',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -36,
-    ratePercent: -28,
+    pitchHz: -10,
+    ratePercent: -18,
     reverbLevel: 0.38,
     warmthDb: 6.5,
-    playbackRate: 0.86,
-    mciSpeed: 860
+    playbackRate: 0.85,
+    mciSpeed: 850
   },
   thay_phap_thoai: {
     id: 'thay_phap_thoai',
     name: 'Giọng Thầy Trẻ Ấm Áp Pháp Thoại',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -4,
-    ratePercent: -8,
+    pitchHz: -2,
+    ratePercent: -5,
     reverbLevel: 0.18,
     warmthDb: 2.5,
-    playbackRate: 0.99,
-    mciSpeed: 990
+    playbackRate: 0.98,
+    mciSpeed: 980
   },
   su_co_thanh_tinh: {
     id: 'su_co_thanh_tinh',
     name: 'Giọng Sư Cô Thanh Tịnh Dịu Hiền (Nữ)',
     voiceName: 'vi-VN-HoaiMyNeural',
-    pitchHz: -12,
-    ratePercent: -18,
-    reverbLevel: 0.26,
-    warmthDb: 3.0,
-    playbackRate: 0.94,
-    mciSpeed: 940
+    pitchHz: -2,
+    ratePercent: -5,
+    reverbLevel: 0.24,
+    warmthDb: 1.5,
+    playbackRate: 0.95,
+    mciSpeed: 950
+  },
+  // Tương thích các mã preset từ Web Admin
+  nam_nhuanduc: {
+    id: 'nam_nhuanduc',
+    name: 'Nam Âm Trầm (Thích Nhuận Đức)',
+    voiceName: 'vi-VN-NamMinhNeural',
+    pitchHz: -8,
+    ratePercent: -10,
+    reverbLevel: 0.28,
+    warmthDb: 4.5,
+    playbackRate: 0.92,
+    mciSpeed: 920
+  },
+  nam_trungnien: {
+    id: 'nam_trungnien',
+    name: 'Nam Trung Niên Trang Nghiêm (Minh Tuệ)',
+    voiceName: 'vi-VN-NamMinhNeural',
+    pitchHz: -2,
+    ratePercent: -5,
+    reverbLevel: 0.18,
+    warmthDb: 2.5,
+    playbackRate: 0.98,
+    mciSpeed: 980
+  },
+  nu_diudang: {
+    id: 'nu_diudang',
+    name: 'Nữ Dịu Dàng Truyền Cảm (Thảo Vy)',
+    voiceName: 'vi-VN-HoaiMyNeural',
+    pitchHz: -2,
+    ratePercent: -5,
+    reverbLevel: 0.24,
+    warmthDb: 1.5,
+    playbackRate: 0.95,
+    mciSpeed: 950
+  },
+  chuong_tinh_tam: {
+    id: 'chuong_tinh_tam',
+    name: 'Chuông Mõ Tĩnh Tâm',
+    voiceName: 'vi-VN-HoaiMyNeural',
+    pitchHz: -2,
+    ratePercent: -5,
+    reverbLevel: 0.24,
+    warmthDb: 1.5,
+    playbackRate: 0.95,
+    mciSpeed: 950
   }
 };
 
@@ -351,6 +396,28 @@ function normalizeUserKey(str) {
   return String(str).normalize('NFC').toLowerCase().trim();
 }
 
+const DEFAULT_UI_LAYOUT = {
+  thien_duong_pos_tophud: { left: 4.5, top: 7.2, scale: 1.0 },
+  thien_duong_pos_guide: { left: 2.3, top: 25.5, scale: 1.0 },
+  thien_duong_pos_merit: { left: 70.2, top: 25.5, scale: 1.0 },
+  thien_duong_pos_monk_1: { left: 28, top: 55, scale: 1.0 },
+  thien_duong_pos_monk_2: { left: 50, top: 54, scale: 1.0 },
+  thien_duong_pos_monk_3: { left: 72, top: 55, scale: 1.0 }
+};
+
+const RANDOM_GIFT_THANK_TEMPLATES = [
+  'Xin cảm tạ tín chủ {name} đã phát tâm cúng dường, kính chúc tín chủ thân tâm an lạc, vạn sự cát tường.',
+  'Cảm tạ thiện duyên của tín chủ {name}, nguyện cầu tín chủ luôn bình an, phúc lành tăng trưởng.',
+  'Xin tri ân tấm lòng của tín chủ {name}. Nguyện Đức Phật từ bi gia hộ cho tín chủ và gia đình được bình an, mạnh khỏe.',
+  'Kính chúc tín chủ {name} phúc tuệ song tu, gia đạo an khang, mọi sự hanh thông.',
+  'Xin cảm niệm thiện tâm của tín chủ {name}, nguyện cầu cuộc sống luôn an vui, tâm hồn thanh tịnh, gia đình hạnh phúc.',
+  'Nguyện chúc tín chủ {name} gieo duyên lành, gặt quả thiện, phúc báu ngày càng tăng trưởng.',
+  'Xin cảm tạ thiện duyên của quý Phật tử {name}, kính chúc quý vị thân khỏe tâm an, gia đình hòa thuận.',
+  'Kính chúc tín chủ {name} luôn gặp điều lành, tránh điều dữ, cuộc sống bình an, thuận duyên như ý.',
+  'Xin tri ân tấm lòng thiện lành của tín chủ {name}. Nguyện cầu ánh sáng từ bi soi đường, dẫn lối cho tín chủ trên đường đời.',
+  'Kính chúc tín chủ {name} phước lành viên mãn, tâm an trí sáng, gia đình hưng thịnh.'
+];
+
 class SeatManager {
   constructor() {
     this.currentThemeId = 1;
@@ -359,6 +426,8 @@ class SeatManager {
     this.currentTier = GRID_TIERS[24];
     this.seats = [];
     this.rebuildSeatGrid(24, false);
+    this.lastGiftTemplateIdx = -1;
+    this.giftSpeechCooldowns = new Map(); // Lưu timestamp lần đọc cảm ơn gần nhất của mỗi người (Cooldown 10s)
 
     this.meritList = [];
     this.voiceConfig = {
@@ -370,9 +439,11 @@ class SeatManager {
       bgMusicTrack: 'zen_pentatonic_432',
       customMp3Url: '',
       bgMusicVolume: 0.38,
-      autoChantEnabled: true,
+      autoChantEnabled: false,
       autoChantIntervalSec: 120,
-      meritTemplate: 'Nam Mô A Di Đà Phật. Xin thành tâm hồi hướng công đức cho thí chủ {name} đã phát tâm cúng dường {gift}. Nguyện cầu cho thí chủ cùng gia quyến thân tâm an lạc, sở cầu như ý.'
+      giftThankTemplates: [...RANDOM_GIFT_THANK_TEMPLATES],
+      meritTemplate1Coin: 'Xin cảm tạ tín chủ {name} đã phát tâm cúng dường, kính chúc tín chủ thân tâm an lạc, vạn sự cát tường.',
+      meritTemplate: 'Nam Mô A Di Đà Phật. Xin thành tâm hồi hướng công đức cho tín chủ {name} đã phát tâm cúng dường {gift}. Nguyện cầu cho thí chủ cùng gia quyến thân tâm an lạc, sở cầu như ý.'
     };
     this.hudConfig = {
       guidePosition: 'top_left',
@@ -399,6 +470,7 @@ class SeatManager {
       meritTitle: '✦ Công Đức ✦'
     };
     this.chantIndex = 0;
+    this.uiLayout = JSON.parse(JSON.stringify(DEFAULT_UI_LAYOUT));
   }
 
   rebuildSeatGrid(targetTotal, preserveUsers = true) {
@@ -594,11 +666,26 @@ class SeatManager {
     this.ensureCapacityForNewSeat();
 
     let targetSeat = this.findFirstEmptySeat();
+    let isReplaced = false;
+    let replacedUser = null;
+
     if (!targetSeat) {
+      // Trường hợp phòng thiền đã kín chỗ -> Người đã ngồi lâu nhất (joinedAt nhỏ nhất) sẽ nhường chỗ, ra ngoài sớm hơn!
       const candidates = this.seats
-        .filter(s => s.occupied)
-        .sort((a, b) => (a.user.meritPoints - b.user.meritPoints) || (a.user.lastActive - b.user.lastActive));
-      targetSeat = candidates[0] || this.seats[this.seats.length - 1];
+        .filter(s => s.occupied && s.user)
+        .sort((a, b) => {
+          const aTime = a.user.joinedAt || a.user.lastActive || 0;
+          const bTime = b.user.joinedAt || b.user.lastActive || 0;
+          return aTime - bTime; // Người ngồi lâu nhất lên đầu danh sách để nhường chỗ
+        });
+
+      if (candidates.length > 0) {
+        targetSeat = candidates[0];
+        replacedUser = { ...targetSeat.user };
+        isReplaced = true;
+      } else {
+        targetSeat = this.seats[0];
+      }
     }
 
     const chosenSkin = this.detectSkinFromText(text, null);
@@ -617,13 +704,29 @@ class SeatManager {
     };
 
     return {
-      action: isIncense ? 'offer_incense' : 'join_seat',
+      action: isReplaced ? 'replace_seat' : (isIncense ? 'offer_incense' : 'join_seat'),
       seatIndex: targetSeat.index,
       seat: targetSeat,
       skinInfo: CHARACTER_SKINS[chosenSkin],
       isIncenseOffering: isIncense,
-      incenseText: isIncense ? (text || 'Nam Mô A Di Đà Phật') : ''
+      incenseText: isIncense ? (text || 'Nam Mô A Di Đà Phật') : '',
+      isReplaced,
+      replacedUser
     };
+  }
+
+  getRandomGiftTemplate() {
+    const list = (Array.isArray(this.voiceConfig.giftThankTemplates) && this.voiceConfig.giftThankTemplates.length > 0)
+      ? this.voiceConfig.giftThankTemplates
+      : RANDOM_GIFT_THANK_TEMPLATES;
+
+    if (list.length === 1) return list[0];
+    let idx = Math.floor(Math.random() * list.length);
+    if (idx === this.lastGiftTemplateIdx && list.length > 1) {
+      idx = (idx + 1) % list.length;
+    }
+    this.lastGiftTemplateIdx = idx;
+    return list[idx];
   }
 
   handleGift({ uniqueId, nickname, giftName = 'Hoa Sen Vàng', diamondCount = 1, repeatCount = 1 }) {
@@ -644,7 +747,10 @@ class SeatManager {
     seat.user.meritPoints = (seat.user.meritPoints || 0) + points;
     seat.user.lastActive = Date.now();
     seat.user.hasMeritAura = true;
-    if (points >= 10) {
+    seat.user.lastGiftAt = Date.now();
+    seat.user.lastGiftName = giftName;
+    seat.user.lastGiftPoints = points;
+    if (points >= 5) {
       seat.user.skin = 'phattu_vang';
     }
 
@@ -668,9 +774,27 @@ class SeatManager {
     this.meritList.sort((a, b) => b.points - a.points || b.updatedAt - a.updatedAt);
     this.meritList = this.meritList.slice(0, 12);
 
-    const chantText = (this.voiceConfig.meritTemplate || '')
+    // KIỂM TRA COOLDOWN 10 GIÂY MỖI NGƯỜI:
+    // Một người tặng liên tiếp hoặc tặng nhiều món cùng lúc thì CHỈ ĐỌC TÊN 1 LẦN DUY NHẤT.
+    // Sau 10 giây mới tính lượt đọc tiếp theo!
+    const now = Date.now();
+    const COOLDOWN_MS = 10000;
+    const lastSpoken = this.giftSpeechCooldowns.get(cleanId) || 0;
+    const isWithinCooldown = (now - lastSpoken < COOLDOWN_MS);
+
+    // Luôn chọn ngẫu nhiên câu cảm ơn chúc phúc để log và hiển thị thông báo
+    const template = this.getRandomGiftTemplate();
+    const chantText = template
       .replace(/\{name\}/g, displayName)
       .replace(/\{gift\}/g, giftName);
+
+    let shouldSpeak = false;
+    if (!isWithinCooldown) {
+      shouldSpeak = true;
+      this.giftSpeechCooldowns.set(cleanId, now);
+    } else {
+      shouldSpeak = false;
+    }
 
     return {
       action: 'gift_merit',
@@ -679,7 +803,9 @@ class SeatManager {
       donorName: displayName,
       giftName,
       points,
-      chantText
+      chantText,
+      shouldSpeak,
+      cooldownRemainingMs: Math.max(0, COOLDOWN_MS - (now - lastSpoken))
     };
   }
 
@@ -760,6 +886,64 @@ class SeatManager {
     }
   }
 
+  /**
+   * Tự động kiểm tra thiền sinh ngồi cố định đủ 10 phút để xả thiền rời phòng
+   * (Trả về danh sách những người đã hoàn thành 10 phút)
+   */
+  checkExpiredSeats(maxDurationMs = 10 * 60 * 1000) {
+    const now = Date.now();
+    const expiredList = [];
+
+    this.seats.forEach(seat => {
+      if (seat.occupied && seat.user) {
+        const joinedAt = seat.user.joinedAt || seat.user.lastActive || now;
+        const elapsed = now - joinedAt;
+        if (elapsed >= maxDurationMs) {
+          const departingUser = { ...seat.user };
+          seat.occupied = false;
+          seat.user = null;
+          expiredList.push({
+            seatIndex: seat.index,
+            user: departingUser,
+            durationMin: Math.max(1, Math.round(elapsed / 60000))
+          });
+        }
+      }
+    });
+
+    return expiredList;
+  }
+
+  /**
+   * Reset toàn bộ Công Đức về ban đầu (Xóa Bảng Công Đức, đưa điểm về 0)
+   */
+  resetAllMerits() {
+    this.meritList = [];
+    this.giftSpeechCooldowns.clear();
+    this.seats.forEach(s => {
+      if (s.user) {
+        s.user.meritPoints = 0;
+        s.user.hasMeritAura = (s.user.skin === 'caotang');
+        s.user.lastGiftAt = 0;
+        s.user.lastGiftName = '';
+        s.user.lastGiftPoints = 0;
+        if (s.user.skin === 'phattu_vang') {
+          s.user.skin = 'nam';
+        }
+      }
+    });
+    return this.getState();
+  }
+
+  /**
+   * Reset toàn bộ phòng thiền (Cả giải phóng bồ đoàn + Reset công đức)
+   */
+  resetAllState() {
+    this.resetAllMerits();
+    this.clearAllSeats();
+    return this.getState();
+  }
+
   setTheme(themeId) {
     const id = Number(themeId);
     if (TEMPLE_THEMES[id]) {
@@ -769,20 +953,51 @@ class SeatManager {
   }
 
   updateVoiceConfig(partial = {}) {
+    let resolvedVoiceName = partial.voiceName;
+    const pId = String(partial.presetId || partial.id || '').toLowerCase();
+    if (!resolvedVoiceName && pId) {
+      if (pId.includes('nu') || pId.includes('su_co') || pId.includes('hoaimy')) {
+        resolvedVoiceName = 'vi-VN-HoaiMyNeural';
+      } else {
+        resolvedVoiceName = 'vi-VN-NamMinhNeural';
+      }
+    }
+    if (pId.includes('nu') || pId.includes('su_co') || pId.includes('hoaimy')) {
+      resolvedVoiceName = 'vi-VN-HoaiMyNeural';
+    } else if (pId.includes('nam') || pId.includes('lao') || pId.includes('thay')) {
+      resolvedVoiceName = 'vi-VN-NamMinhNeural';
+    }
+
     if (partial.presetId && VOICE_PRESETS[partial.presetId]) {
       const preset = VOICE_PRESETS[partial.presetId];
       this.voiceConfig = {
         ...this.voiceConfig,
         ...preset,
         ...partial,
-        voiceName: partial.voiceName || preset.voiceName
+        voiceName: resolvedVoiceName || partial.voiceName || preset.voiceName || 'vi-VN-NamMinhNeural'
       };
     } else {
       this.voiceConfig = {
         ...this.voiceConfig,
-        ...partial
+        ...partial,
+        voiceName: resolvedVoiceName || partial.voiceName || this.voiceConfig.voiceName || 'vi-VN-NamMinhNeural'
       };
     }
+
+    // Tự động tính toán DSP & Tốc độ phát lại theo Pitch (Hz) & Rate (%)
+    if (this.voiceConfig.ratePercent !== undefined) {
+      const rateVal = Number(this.voiceConfig.ratePercent) || 0;
+      this.voiceConfig.playbackRate = Number((1.0 + rateVal / 100.0).toFixed(2));
+      this.voiceConfig.mciSpeed = Math.round(1000 * this.voiceConfig.playbackRate);
+    }
+    if (this.voiceConfig.pitchHz !== undefined) {
+      const pitchVal = Number(this.voiceConfig.pitchHz) || 0;
+      this.voiceConfig.warmthDb = Number(Math.max(0, -pitchVal * 0.55).toFixed(2));
+    }
+    if (Array.isArray(partial.giftThankTemplates) && partial.giftThankTemplates.length > 0) {
+      this.voiceConfig.giftThankTemplates = partial.giftThankTemplates;
+    }
+
     return this.voiceConfig;
   }
 
@@ -819,6 +1034,22 @@ class SeatManager {
     return this.textConfig;
   }
 
+  updateUiLayout(key, layout) {
+    if (!this.uiLayout) this.uiLayout = JSON.parse(JSON.stringify(DEFAULT_UI_LAYOUT));
+    if (key && layout) {
+      this.uiLayout[key] = {
+        ...(this.uiLayout[key] || {}),
+        ...layout
+      };
+    }
+    return this.uiLayout;
+  }
+
+  resetUiLayout() {
+    this.uiLayout = JSON.parse(JSON.stringify(DEFAULT_UI_LAYOUT));
+    return this.uiLayout;
+  }
+
   getNextScriptureChant() {
     const text = SCRIPTURE_CHANTS[this.chantIndex % SCRIPTURE_CHANTS.length];
     this.chantIndex++;
@@ -837,6 +1068,7 @@ class SeatManager {
       voiceConfig: this.voiceConfig,
       hudConfig: this.hudConfig,
       textConfig: this.textConfig,
+      uiLayout: this.uiLayout,
       sessionStartTime: this.sessionStartTime,
       slotMode: this.slotMode,
       gridCols: this.currentTier.cols,

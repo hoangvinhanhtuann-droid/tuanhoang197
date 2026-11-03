@@ -18,6 +18,9 @@ class TempleAudioEngine {
     this.customAudioEl = null;
     this.isSpeaking = false;
     this.melodyStep = 0;
+    this.speechQueue = [];
+    this.isProcessingSpeechQueue = false;
+    this.activeSourceNode = null;
 
     this.config = {
       woodenFishEnabled: true,
@@ -410,8 +413,36 @@ class TempleAudioEngine {
 
   /**
    * Phát Giọng Nam Trầm Ấm Đọc Kinh / Xướng Tên qua Bộ Lọc Âm Học Chánh Điện
+   * (Được xếp hàng tuần tự - TUYỆT ĐỐI KHÔNG BAO GIỜ NÓI ĐÈ LÊN NHAU)
    */
-  async playChantSpeech({ audioBase64, text, voiceConfig }) {
+  async playChantSpeech(payload) {
+    return new Promise(resolve => {
+      this.speechQueue.push({ payload, resolve });
+      this.processSpeechQueue();
+    });
+  }
+
+  async processSpeechQueue() {
+    if (this.isProcessingSpeechQueue) return;
+    this.isProcessingSpeechQueue = true;
+
+    while (this.speechQueue.length > 0) {
+      const current = this.speechQueue.shift();
+      try {
+        await this._playChantSpeechDirect(current.payload);
+        // Nghỉ 600ms tĩnh lặng thanh tịnh giữa 2 lần đọc
+        await new Promise(r => setTimeout(r, 600));
+      } catch (err) {
+        console.warn('[AudioEngine] Lỗi trong hàng đợi đọc:', err);
+      } finally {
+        if (current.resolve) current.resolve();
+      }
+    }
+
+    this.isProcessingSpeechQueue = false;
+  }
+
+  async _playChantSpeechDirect({ audioBase64, text, voiceConfig }) {
     if (voiceConfig) {
       this.updateConfig(voiceConfig);
     }
@@ -420,70 +451,132 @@ class TempleAudioEngine {
       this.initContext();
     }
 
+    // Đánh thức WebAudio context nếu đang ở trạng thái suspended do chính sách trình duyệt
+    if (this.ctx && this.ctx.state === 'suspended') {
+      try {
+        await this.ctx.resume();
+      } catch (err) {
+        console.warn('[AudioEngine] ctx resume error:', err);
+      }
+    }
+
     this.isSpeaking = true;
     if (this.customAudioEl) {
       this.customAudioEl.volume = Math.max(0, (Number(this.config.bgMusicVolume) || 0.38) * 0.2);
     }
 
     this.playTempleBell(0.95);
-    await new Promise(r => setTimeout(r, 750));
+    await new Promise(r => setTimeout(r, 650));
 
-    if (audioBase64 && this.ctx) {
-      try {
-        const binary = atob(audioBase64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-          bytes[i] = binary.charCodeAt(i);
+    if (audioBase64) {
+      let webAudioSuccess = false;
+
+      // 1. Thử phát qua WebAudio DSP Engine (BiquadFilter + Reverb Chánh Điện 432Hz)
+      if (this.ctx && this.ctx.state === 'running') {
+        try {
+          const binary = atob(audioBase64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+
+          const audioBuffer = await this.ctx.decodeAudioData(bytes.buffer.slice(0));
+          const source = this.ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          this.activeSourceNode = source;
+
+          const rate = Number(this.config.playbackRate) || 0.93;
+          source.playbackRate.value = Math.max(0.60, Math.min(1.60, rate));
+
+          const lowShelf = this.ctx.createBiquadFilter();
+          lowShelf.type = 'lowshelf';
+          lowShelf.frequency.value = 175;
+          lowShelf.gain.value = Number(this.config.warmthDb) || 4.5;
+
+          const highShelf = this.ctx.createBiquadFilter();
+          highShelf.type = 'highshelf';
+          highShelf.frequency.value = 4000;
+          highShelf.gain.value = -3.0;
+
+          const dryGain = this.ctx.createGain();
+          const wetGain = this.ctx.createGain();
+          const revLvl = Math.max(0, Math.min(0.85, Number(this.config.reverbLevel) ?? 0.28));
+          dryGain.gain.value = 1.0;
+          wetGain.gain.value = revLvl;
+
+          source.connect(lowShelf);
+          lowShelf.connect(highShelf);
+          highShelf.connect(dryGain);
+          dryGain.connect(this.masterGain);
+
+          if (this.reverbNode) {
+            highShelf.connect(this.reverbNode);
+            this.reverbNode.connect(wetGain);
+            wetGain.connect(this.masterGain);
+          }
+
+          const durationSec = (audioBuffer.duration || 5) / Math.max(0.5, rate);
+
+          // Bộ hẹn giờ an toàn: Tuyệt đối không để hàng đợi bị kẹt vĩnh viễn nếu onended không bắn!
+          await new Promise(resolve => {
+            let finished = false;
+            const finish = () => {
+              if (!finished) {
+                finished = true;
+                clearTimeout(safetyTimer);
+                this.activeSourceNode = null;
+                resolve();
+              }
+            };
+            const safetyTimer = setTimeout(finish, Math.round(durationSec * 1000) + 1200);
+            source.onended = finish;
+            try {
+              source.start(0);
+            } catch (startErr) {
+              console.warn('[AudioEngine] source.start error:', startErr);
+              finish();
+            }
+          });
+
+          webAudioSuccess = true;
+        } catch (err) {
+          console.warn('[AudioEngine] WebAudio DSP decode error, chuyển qua HTML5 Audio:', err);
         }
+      }
 
-        const audioBuffer = await this.ctx.decodeAudioData(bytes.buffer.slice(0));
-        const source = this.ctx.createBufferSource();
-        source.buffer = audioBuffer;
-
-        const rate = Number(this.config.playbackRate) || 0.93;
-        source.playbackRate.value = Math.max(0.75, Math.min(1.15, rate));
-
-        const lowShelf = this.ctx.createBiquadFilter();
-        lowShelf.type = 'lowshelf';
-        lowShelf.frequency.value = 175;
-        lowShelf.gain.value = Number(this.config.warmthDb) || 4.5;
-
-        const highShelf = this.ctx.createBiquadFilter();
-        highShelf.type = 'highshelf';
-        highShelf.frequency.value = 4000;
-        highShelf.gain.value = -3.0;
-
-        const dryGain = this.ctx.createGain();
-        const wetGain = this.ctx.createGain();
-        const revLvl = Math.max(0, Math.min(0.65, Number(this.config.reverbLevel) ?? 0.28));
-        dryGain.gain.value = 1.0;
-        wetGain.gain.value = revLvl;
-
-        source.connect(lowShelf);
-        lowShelf.connect(highShelf);
-
-        highShelf.connect(dryGain);
-        dryGain.connect(this.masterGain);
-
-        if (this.reverbNode) {
-          highShelf.connect(this.reverbNode);
-          this.reverbNode.connect(wetGain);
-          wetGain.connect(this.masterGain);
+      // 2. Dự phòng: HTML5 Audio Element (chạy độc lập, không phụ thuộc WebAudio clock)
+      if (!webAudioSuccess) {
+        try {
+          const fallbackAudio = new Audio('data:audio/mp3;base64,' + audioBase64);
+          await new Promise(resolve => {
+            let finished = false;
+            const finish = () => {
+              if (!finished) {
+                finished = true;
+                clearTimeout(safetyTimer);
+                fallbackAudio.onended = null;
+                fallbackAudio.onerror = null;
+                resolve();
+              }
+            };
+            const safetyTimer = setTimeout(finish, 8500);
+            fallbackAudio.onended = finish;
+            fallbackAudio.onerror = finish;
+            fallbackAudio.play().catch(finish);
+          });
+          webAudioSuccess = true;
+        } catch (html5Err) {
+          console.warn('[AudioEngine] HTML5 Audio fallback error:', html5Err);
         }
+      }
 
-        await new Promise(resolve => {
-          source.onended = resolve;
-          source.start(0);
-        });
-
+      if (webAudioSuccess) {
         this.playTempleBell(0.65);
         this.isSpeaking = false;
         if (this.customAudioEl && this.config.bgMusicEnabled) {
           this.customAudioEl.volume = Math.max(0, Math.min(1, (Number(this.config.bgMusicVolume) || 0.38) * 0.85));
         }
         return;
-      } catch (err) {
-        console.warn('[AudioEngine] WebAudio decode fallback:', err);
       }
     }
 
@@ -499,6 +592,9 @@ class TempleAudioEngine {
       });
     }
     this.isSpeaking = false;
+    if (this.customAudioEl && this.config.bgMusicEnabled) {
+      this.customAudioEl.volume = Math.max(0, Math.min(1, (Number(this.config.bgMusicVolume) || 0.38) * 0.85));
+    }
   }
 }
 

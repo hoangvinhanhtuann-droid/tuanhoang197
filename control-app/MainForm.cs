@@ -97,10 +97,10 @@ namespace ThienDuongControl
         // PresetId, DisplayName, EdgeVoiceName, MCI Speed (1000 = 1.0x)
         private readonly string[,] _voicePresetOptions = new string[,]
         {
-            { "nam_tram_doc_kinh", "Giọng Nam Trầm Ấm Đọc Kinh (Khuyên dùng: -18Hz, -20%)", "vi-VN-NamMinhNeural", "930" },
-            { "lao_hoa_thuong", "Giọng Lão Hòa Thượng Uy Nghiêm (Trầm Sâu: -36Hz, -28%)", "vi-VN-NamMinhNeural", "860" },
-            { "thay_phap_thoai", "Giọng Thầy Trẻ Ấm Áp Pháp Thoại (-4Hz, -8%)", "vi-VN-NamMinhNeural", "990" },
-            { "su_co_thanh_tinh", "Giọng Sư Cô Thanh Tịnh Dịu Hiền (Nữ: -12Hz, -18%)", "vi-VN-HoaiMyNeural", "940" }
+            { "nam_tram_doc_kinh", "1. Giọng Nam Trầm Ấm Đọc Kinh (Khuyên dùng: Nam)", "vi-VN-NamMinhNeural", "920" },
+            { "lao_hoa_thuong", "2. Giọng Lão Hòa Thượng Uy Nghiêm (Trầm Sâu: Nam)", "vi-VN-NamMinhNeural", "850" },
+            { "thay_phap_thoai", "3. Giọng Thầy Trẻ Ấm Áp Pháp Thoại (Tự Nhiên: Nam)", "vi-VN-NamMinhNeural", "980" },
+            { "su_co_thanh_tinh", "4. Giọng Sư Cô Thanh Tịnh Dịu Hiền (Truyền Cảm: Nữ)", "vi-VN-HoaiMyNeural", "950" }
         };
 
         private readonly string[,] _bgMusicOptions = new string[,]
@@ -307,7 +307,7 @@ namespace ThienDuongControl
             _chkAutoChant = new CheckBox
             {
                 Text = "Đọc kinh tự động (2p/lần)",
-                Checked = true,
+                Checked = false,
                 AutoSize = true,
                 Location = new Point(198, 178)
             };
@@ -501,11 +501,20 @@ namespace ThienDuongControl
                 grpSim.Controls.Add(btnSample);
             }
 
-            Button btnClearSeats = CreateStyledButton("🧹 Làm Trống Toàn Bộ Bồ Đoàn", new Point(14, 428), new Size(312, 30), Color.FromArgb(85, 35, 35));
+            Button btnResetMerit = CreateStyledButton("✨ Reset Công Đức", new Point(14, 426), new Size(152, 32), Color.FromArgb(178, 112, 24));
+            btnResetMerit.Click += (s, e) =>
+            {
+                PlayLocalTempleBellWav();
+                SendJsonPost("/api/merit/reset", "{}");
+                AppendLog("✨ Đã reset Bảng Công Đức và đưa toàn bộ điểm công đức về ban đầu (0 điểm)!");
+            };
+            grpSim.Controls.Add(btnResetMerit);
+
+            Button btnClearSeats = CreateStyledButton("🧹 Làm Trống Ghế", new Point(174, 426), new Size(152, 32), Color.FromArgb(125, 42, 42));
             btnClearSeats.Click += (s, e) =>
             {
                 SendJsonPost("/api/seats/clear", "{}");
-                AppendLog("Đã làm trống toàn bộ bồ đoàn.");
+                AppendLog("🧹 Đã làm trống toàn bộ bồ đoàn.");
             };
             grpSim.Controls.Add(btnClearSeats);
 
@@ -635,7 +644,7 @@ namespace ThienDuongControl
             int ratePct = (int)_numRate.Value;
 
             // Tính tốc độ MCI để tạo độ trầm ấm rõ rệt ngay trên WinForms
-            int mciSpeed = Math.Max(780, Math.Min(1100, baseMciSpeed + (pitchHz + 18) * 3));
+            int mciSpeed = Math.Max(750, Math.Min(1100, baseMciSpeed + (pitchHz + 14) * 4));
 
             _btnPreviewVoice.Enabled = false;
             _btnPreviewVoice.Text = "⏳ Đang phát giọng đọc...";
@@ -857,10 +866,10 @@ namespace ThienDuongControl
         {
             _suppressPresetEvent = true;
             int idx = _cboVoicePreset.SelectedIndex;
-            if (idx == 0) { _numPitch.Value = -18; _numRate.Value = -20; _numReverb.Value = 28; }
-            else if (idx == 1) { _numPitch.Value = -36; _numRate.Value = -28; _numReverb.Value = 38; }
-            else if (idx == 2) { _numPitch.Value = -4; _numRate.Value = -8; _numReverb.Value = 18; }
-            else if (idx == 3) { _numPitch.Value = -12; _numRate.Value = -18; _numReverb.Value = 26; }
+            if (idx == 0) { _numPitch.Value = -14; _numRate.Value = -12; _numReverb.Value = 28; }
+            else if (idx == 1) { _numPitch.Value = -18; _numRate.Value = -20; _numReverb.Value = 38; }
+            else if (idx == 2) { _numPitch.Value = -4; _numRate.Value = -5; _numReverb.Value = 18; }
+            else if (idx == 3) { _numPitch.Value = 0; _numRate.Value = -8; _numReverb.Value = 26; }
             _suppressPresetEvent = false;
 
             // Tự động đồng bộ ngay giọng vừa chọn sang Server để Tặng Quà & Đọc Kinh phát đúng 100%

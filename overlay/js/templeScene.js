@@ -14,6 +14,8 @@ class TempleSceneRenderer {
     this.seatBurstEffects = {}; // seatIndex -> { startTime, color }
     this.activeIncenseOfferings = new Map(); // seatIndex -> { seatIndex, user, startTime }
     this.woodenFishPulse = 0;
+    this.highlightedSeatIndex = -1;
+    this.highlightTimeout = null;
 
     this.initThreeScene();
     this.handleResize();
@@ -252,25 +254,67 @@ class TempleSceneRenderer {
     return { x, y, scale };
   }
 
+  setSpotlightSeat(seatIndex, durationMs = 10000) {
+    this.highlightedSeatIndex = (seatIndex !== undefined && seatIndex !== null) ? Number(seatIndex) : -1;
+    this.renderSeatDOMLabels();
+
+    if (this.highlightTimeout) {
+      clearTimeout(this.highlightTimeout);
+    }
+    if (this.highlightedSeatIndex >= 0 && durationMs > 0) {
+      this.highlightTimeout = setTimeout(() => {
+        this.clearSpotlightSeat();
+      }, durationMs);
+    }
+  }
+
+  clearSpotlightSeat() {
+    this.highlightedSeatIndex = -1;
+    if (this.highlightTimeout) {
+      clearTimeout(this.highlightTimeout);
+      this.highlightTimeout = null;
+    }
+    this.renderSeatDOMLabels();
+  }
+
   renderSeatDOMLabels() {
     if (!this.seatLabelsLayer) return;
     this.seatLabelsLayer.innerHTML = '';
     const total = this.seats.length;
 
+    const scaleFactor = Math.max(1, (this.width || 540) / 540);
+
     this.seats.forEach(seat => {
       if (!seat.occupied || !seat.user) return;
       const proj = this.getSeatProjection(seat.row, seat.col);
-      const headOffset = 42 * proj.scale;
+      // Nâng nhãn tên lên cao hơn theo tỉ lệ scale màn hình (thoáng đỉnh đầu & mũ/hào quang chuẩn 1080p, không bao giờ che đầu)
+      const headOffset = ((78 * proj.scale) + 24) * scaleFactor;
+      
+      // CHỈ NỔI BẬT ĐÚNG 1 NGƯỜI ĐANG ĐƯỢC ĐỌC CẢM ƠN TẶNG QUÀ
+      const isSpotlight = (this.highlightedSeatIndex === seat.index);
 
+      // 1. Tên thiền sinh trên đầu (phát sáng vàng rực rỡ chỉ khi đang đọc cảm ơn)
       const tag = document.createElement('div');
-      tag.className = 'seat-name-tag' + (seat.user.hasMeritAura ? ' merit-vip' : '');
+      tag.className = 'seat-name-tag' + (isSpotlight ? ' active-gift-spotlight' : '');
       tag.style.left = `${proj.x}px`;
       tag.style.top = `${proj.y - headOffset}px`;
+
       if (total > 36) {
-        tag.style.fontSize = total > 64 ? '8px' : '9.5px';
-        tag.style.padding = '1px 6px';
+        const basePx = total > 64 ? 9.5 : 11;
+        tag.style.fontSize = `${basePx * scaleFactor}px`;
+        tag.style.padding = `${Math.round(2 * scaleFactor)}px ${Math.round(6 * scaleFactor)}px`;
+      } else {
+        const basePx = 12.5;
+        tag.style.fontSize = `${basePx * scaleFactor}px`;
+        tag.style.padding = `${Math.round(2.5 * scaleFactor)}px ${Math.round(8 * scaleFactor)}px`;
       }
-      tag.textContent = seat.user.nickname;
+      tag.textContent = '';
+      if (isSpotlight) {
+        const star = document.createElement('span');
+        star.textContent = '✨ ';
+        tag.appendChild(star);
+      }
+      tag.appendChild(document.createTextNode(String(seat.user.nickname || 'Phật Tử')));
 
       if (seat.user.prayerText && Date.now() - (seat.user.lastActive || 0) < 6000) {
         const bubble = document.createElement('div');
@@ -280,6 +324,21 @@ class TempleSceneRenderer {
       }
 
       this.seatLabelsLayer.appendChild(tag);
+
+      // 2. Thẻ phát sáng dưới chỗ ngồi / chân bồ đoàn - CHỈ HIỆN KHI ĐANG ĐỌC CẢM ƠN NGƯỜI ĐÓ
+      if (isSpotlight) {
+        const cushionTag = document.createElement('div');
+        cushionTag.className = 'cushion-merit-tag active-gift-spotlight';
+        cushionTag.style.left = `${proj.x}px`;
+        cushionTag.style.top = `${proj.y + (16 * proj.scale) * scaleFactor}px`;
+        cushionTag.style.fontSize = `${11.5 * scaleFactor}px`;
+        cushionTag.style.padding = `${Math.round(3 * scaleFactor)}px ${Math.round(8 * scaleFactor)}px`;
+        const giftText = seat.user.lastGiftName
+          ? `🎁 ${seat.user.lastGiftName} (+${seat.user.meritPoints || 1})`
+          : `✦ Cảm Ơn Cúng Dường 🙏`;
+        cushionTag.textContent = giftText;
+        this.seatLabelsLayer.appendChild(cushionTag);
+      }
     });
   }
 
@@ -651,14 +710,38 @@ class TempleSceneRenderer {
     ctx.fill();
     ctx.stroke();
 
-    // Vòng hào quang Công Đức dưới bồ đoàn nếu người ngồi đã tặng quà
-    if (seat.occupied && seat.user && (seat.user.hasMeritAura || seat.user.skin === 'phattu_vang' || seat.user.skin === 'caotang')) {
-      const pulse = 0.65 + Math.sin(timeSec * 4 + seat.index) * 0.25;
+    // Vòng hào quang Công Đức tỏa sáng rực rỡ dưới bồ đoàn / chỗ ngồi - CHỈ NỔI BẬT ĐÚNG 1 NGƯỜI ĐANG ĐƯỢC ĐỌC CẢM ƠN
+    if (seat.occupied && seat.user && (this.highlightedSeatIndex === seat.index)) {
+      const pulse = 0.75 + Math.sin(timeSec * 6 + seat.index) * 0.25;
+
+      ctx.save();
+      // 1. Quầng sáng vàng kim tỏa rộng dưới sàn bồ đoàn
+      const auraR = rx * 1.85;
+      const groundGrad = ctx.createRadialGradient(0, 2 * s, rx * 0.3, 0, 2 * s, auraR);
+      groundGrad.addColorStop(0, `rgba(255, 235, 120, ${0.85 * pulse})`);
+      groundGrad.addColorStop(0.5, `rgba(255, 195, 45, ${0.45 * pulse})`);
+      groundGrad.addColorStop(1, 'rgba(255, 170, 0, 0)');
+      ctx.fillStyle = groundGrad;
       ctx.beginPath();
-      ctx.ellipse(0, 1 * s, rx * 1.28, ry * 1.28, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 215, 0, ${pulse})`;
-      ctx.lineWidth = 2.5 * s;
+      ctx.ellipse(0, 2 * s, auraR, auraR * 0.48, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Vòng hào quang neon viền vàng kim
+      ctx.beginPath();
+      ctx.ellipse(0, 1 * s, rx * 1.34, ry * 1.34, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 240, 150, ${pulse})`;
+      ctx.lineWidth = 4.2 * s;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 22 * s;
       ctx.stroke();
+
+      // Vòng phụ ngoài mờ ảo
+      ctx.beginPath();
+      ctx.ellipse(0, 1 * s, rx * 1.52, ry * 1.52, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.45 * pulse})`;
+      ctx.lineWidth = 1.6 * s;
+      ctx.stroke();
+      ctx.restore();
     }
 
     // 2. Bóng đổ dưới đệm tròn
@@ -742,6 +825,33 @@ class TempleSceneRenderer {
       congchua: { robeTop: '#fbcfe8', robeBot: '#f472b6', sash: '#ffffff', head: 'princess_tiara' }
     };
     const pal = palettes[skinKey] || palettes.nam;
+
+    // Hào quang Kim Sắc tỏa sáng rực rỡ xung quanh người - CHỈ CHO ĐÚNG 1 NGƯỜI ĐANG ĐƯỢC ĐỌC CẢM ƠN
+    if (user && (this.highlightedSeatIndex === seatIndex)) {
+      const auraPulse = 0.75 + Math.sin(timeSec * 6 + seatIndex) * 0.25;
+      const auraRadius = 54 * s;
+
+      ctx.save();
+      // Quầng hào quang toàn thân phát sáng quanh người
+      const auraGrad = ctx.createRadialGradient(0, -18 * s + breath, 8 * s, 0, -18 * s + breath, auraRadius);
+      auraGrad.addColorStop(0, `rgba(255, 245, 140, ${0.85 * auraPulse})`);
+      auraGrad.addColorStop(0.45, `rgba(255, 205, 50, ${0.5 * auraPulse})`);
+      auraGrad.addColorStop(1, 'rgba(255, 180, 0, 0)');
+      ctx.fillStyle = auraGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, -18 * s + breath, auraRadius * 0.88, auraRadius, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Vòng sáng hào quang trên đầu (Golden Halo)
+      ctx.beginPath();
+      ctx.ellipse(0, -36 * s + breath, 18 * s, 7 * s, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 240, 120, ${0.9 * auraPulse})`;
+      ctx.lineWidth = 3.2 * s;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur = 12 * s;
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // 1. Tà áo / Chân xếp bằng trên bồ đoàn
     ctx.fillStyle = pal.robeBot;
@@ -1045,42 +1155,6 @@ class TempleSceneRenderer {
       ctx.lineTo(4 * s, headY - 13 * s);
       ctx.lineTo(7 * s, headY - 7 * s);
       ctx.closePath();
-      ctx.fill();
-    } else if (pal.head === 'monk_shaved' || pal.head === 'monk_halo') {
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-7 * s, headY - 5 * s);
-      ctx.quadraticCurveTo(-12 * s, headY - 11 * s, -8 * s, headY - 13 * s);
-      ctx.moveTo(7 * s, headY - 5 * s);
-      ctx.quadraticCurveTo(12 * s, headY - 11 * s, 8 * s, headY - 13 * s);
-      ctx.stroke();
-      // 2 tai bò ngang
-      ctx.fillStyle = '#cbd5e1';
-      ctx.beginPath();
-      ctx.ellipse(-10.5 * s, headY - 2 * s, 4 * s, 2.2 * s, -0.2, 0, Math.PI * 2);
-      ctx.ellipse(10.5 * s, headY - 2 * s, 4 * s, 2.2 * s, 0.2, 0, Math.PI * 2);
-      ctx.fill();
-      // Đầu trắng đốm đen
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(0, headY, 9 * s, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#1e293b';
-      ctx.beginPath();
-      ctx.arc(-3.5 * s, headY - 2 * s, 3.8 * s, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (pal.head === 'chicken_comb') {
-      // Đầu Gà Vàng + Mào Đỏ 3 chóp nổi bật trên đỉnh đầu
-      ctx.fillStyle = '#fde047';
-      ctx.beginPath();
-      ctx.arc(0, headY, 8.8 * s, 0, Math.PI * 2);
-      ctx.fill();
-      // Mào gà đỏ 3 đỉnh
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(-3.2 * s, headY - 8.5 * s, 2.8 * s, 0, Math.PI * 2);
-      ctx.arc(0, headY - 10.2 * s, 3.3 * s, 0, Math.PI * 2);
-      ctx.arc(3.2 * s, headY - 8.5 * s, 2.8 * s, 0, Math.PI * 2);
       ctx.fill();
     } else if (pal.head === 'monk_shaved' || pal.head === 'monk_halo') {
       // Đầu tròn cạo nhẵn của Sư Thầy / Sư Cô / Cao Tăng

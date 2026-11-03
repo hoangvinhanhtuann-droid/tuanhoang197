@@ -23,6 +23,7 @@
     </div>
 
     <div class="header-actions">
+      <button id="btn-toggle-admin-audio" class="btn btn-gold" title="Bật/Tắt âm thanh đọc kinh xướng tên trực tiếp trên trang Admin (Mặc định BẬT để nghe thử và test quà)">🔊 Loa Admin: BẬT</button>
       <button id="btn-quick-bell" class="btn btn-gold" title="Thỉnh Đại Hồng Chung">🔔 Thỉnh Chuông</button>
       <button id="btn-quick-fish" class="btn btn-gold" title="Gõ Mõ Tĩnh Tâm">🪵 Gõ Mõ</button>
       <button id="btn-reload-overlay" class="btn btn-blue" title="Làm mới toàn bộ màn hình Overlay OBS Studio">🔄 Làm Mới Overlay</button>
@@ -101,10 +102,12 @@
       <div class="form-group">
         <label class="form-label" for="select-voice-preset">Mẫu Giọng Đọc Cài Sẵn:</label>
         <select id="select-voice-preset" class="form-select">
-          <option value="nam_nhuanduc" selected>Nam Ấm Trầm (Thích Nhuận Đức)</option>
-          <option value="nam_trungnien">Nam Trung Niên Trang Nghiêm (Minh Tuệ)</option>
+          <option value="nam_tram_doc_kinh" selected>Giọng Nam Trầm Ấm Đọc Kinh (Khuyên dùng)</option>
+          <option value="lao_hoa_thuong">Giọng Lão Hòa Thượng Uy Nghiêm (Trầm Sâu)</option>
+          <option value="thay_phap_thoai">Giọng Thầy Trẻ Ấm Áp Pháp Thoại</option>
+          <option value="su_co_thanh_tinh">Giọng Sư Cô / Nữ Thanh Tịnh Dịu Hiền</option>
+          <option value="nam_nhuanduc">Nam Ấm Trầm (Thích Nhuận Đức)</option>
           <option value="nu_diudang">Nữ Dịu Dàng Truyền Cảm (Thảo Vy)</option>
-          <option value="chuong_tinh_tam">Chuông Mõ Tịnh Tâm (Thuần Âm Nhạc)</option>
         </select>
       </div>
 
@@ -161,6 +164,11 @@
         </div>
       </div>
 
+      <div class="form-group" style="margin-top:10px;">
+        <label class="form-label" style="color:#fde047;">🎁 10 Câu Cảm Ơn Tặng Xu Ngẫu Nhiên (mỗi dòng 1 câu, tự điền {name}):</label>
+        <textarea id="input-gift-random-templates" class="form-control" rows="8" style="font-size:0.8rem; line-height:1.45; resize:vertical;"></textarea>
+      </div>
+
       <div class="form-row" style="margin-top:6px;">
         <button id="btn-test-tts" class="btn btn-blue" style="flex:1;">▶️ Nghe Thử TTS</button>
         <button id="btn-trigger-chant" class="btn btn-gold" style="flex:1;">📿 Phát Kinh Live</button>
@@ -195,8 +203,9 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <button id="btn-clear-seats" class="btn btn-red" style="width:100%;">🧹 Giải Phóng Toàn Bộ Bồ Đoàn</button>
+      <div class="form-group" style="display:flex; gap:6px;">
+        <button id="btn-reset-merit" class="btn btn-gold" style="flex:1;" title="Xóa Bảng Công Đức và đưa tất cả điểm công đức về 0">✨ Reset Công Đức</button>
+        <button id="btn-clear-seats" class="btn btn-red" style="flex:1;" title="Giải phóng toàn bộ bồ đoàn cho Phật tử mới vào">🧹 Làm Trống Ghế</button>
       </div>
 
       <hr style="border:none; border-top:1px solid rgba(229,184,91,0.2); margin:6px 0;" />
@@ -232,12 +241,26 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label" style="color:#fde047;">🔍 Cỡ Chữ / Phóng To Khung HUD (Scale):</label>
+        <div class="range-container">
+          <input type="range" id="slider-hud-scale" class="range-slider" min="0.8" max="2.2" step="0.05" value="1.0" />
+          <span id="val-hud-scale" class="range-val">100%</span>
+        </div>
+      </div>
+
       <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
         <input type="checkbox" id="chk-hud-collapse" style="accent-color:var(--gold); width:18px; height:18px;" />
         <label for="chk-hud-collapse" class="form-label" style="cursor:pointer; margin-bottom:0;">Gập gọn khung (Chỉ hiện thanh tiêu đề)</label>
       </div>
 
-      <button id="btn-save-hud" class="btn btn-gold" style="width:100%; margin-top:4px;">💾 Áp Dụng Cấu Hình Khung Lên Live</button>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button id="btn-save-hud" class="btn btn-gold" style="flex:1;">💾 Áp Dụng Lên Live</button>
+        <button id="btn-reset-ui-layout" class="btn btn-dark" style="white-space:nowrap;" title="Khôi phục lại toàn bộ vị trí & cỡ khung về mặc định">🔄 Đặt Lại Mặc Định</button>
+      </div>
+      <div style="font-size:0.75rem; color:#94a3b8; margin-top:6px; line-height:1.4;">
+        💡 <strong>Mẹo Kéo Thả Trực Tiếp:</strong> Mở <a href="/" target="_blank" style="color:var(--gold); font-weight:600;">Màn hình Overlay</a>, dùng chuột kéo thanh tiêu đề bất kỳ để di chuyển hoặc kéo góc ↘️ để phóng to/thu nhỏ. Màn hình OBS Studio sẽ <strong>tự động di chuyển theo thời gian thực</strong>!
+      </div>
     </section>
 
     <!-- CỘT 4: GIẢ LẬP LIVE & QUÀ TẶNG TIKTOK -->
@@ -395,7 +418,7 @@
     </section>
   </main>
 
-  <script src="/js/audioEngine.js"></script>
-  <script src="/js/admin.js"></script>
+  <script src="/js/audioEngine.js?v=6.5"></script>
+  <script src="/js/admin.js?v=6.5"></script>
 </body>
 </html>

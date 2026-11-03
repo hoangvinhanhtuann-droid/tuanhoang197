@@ -8,8 +8,8 @@
   <link rel="shortcut icon" href="/favicon.svg?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=6.3" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Noto+Serif:ital,wght@0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css?v=6.8" />
   <!-- Three.js CDN cho hiệu ứng hạt 3D, Hào quang & Ánh sáng Chánh Điện -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -35,8 +35,8 @@
     <div id="seat-labels-layer"></div>
 
     <!-- 5. Lớp Giao Diện HUD (Banner Đỉnh, Bảng Hướng Dẫn Trái, Bảng Công Đức Phải) -->
-    <header class="top-hud">
-      <div class="temple-banner">
+    <header id="top-hud" class="top-hud draggable-box">
+      <div class="temple-banner" id="banner-drag-handle" title="Giữ chuột kéo thả di chuyển vị trí">
         <div class="banner-lotus-icon">❁</div>
         <div class="banner-texts">
           <h1 id="banner-title">THIỀN ĐƯỜNG TỊNH TÂM</h1>
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <div class="status-pills">
+      <div class="status-pills" id="pills-drag-handle" title="Giữ chuột kéo thả di chuyển">
         <div class="status-pill count-pill">
           <span class="green-dot"></span>
           <strong id="seat-counter">15/24</strong>
@@ -55,10 +55,11 @@
           <strong id="session-timer">00:00:45</strong>
         </div>
       </div>
+      <div class="card-resize-handle" title="Kéo góc này để phóng to / thu nhỏ">⤡</div>
     </header>
 
     <!-- Bảng Hướng Dẫn Bên Trái (Hỗ trợ kéo thả chuột, thu gọn và xoay vòng nội dung) -->
-    <aside id="guide-card" class="info-card left-guide-card">
+    <aside id="guide-card" class="info-card left-guide-card draggable-box">
       <div id="guide-drag-handle" class="guide-card-header" title="Giữ chuột để kéo thả vị trí">
         <span class="guide-header-title" id="guide-title-text">✥ HƯỚNG DẪN</span>
         <button id="btn-toggle-guide" class="guide-btn-toggle" title="Thu nhỏ / Mở rộng">─</button>
@@ -92,14 +93,18 @@
           </div>
         </div>
       </div>
+      <div class="card-resize-handle" title="Kéo góc này để phóng to / thu nhỏ">⤡</div>
     </aside>
 
     <!-- Bảng Công Đức Bên Phải -->
-    <aside class="info-card right-merit-card">
-      <div id="merit-header-title" class="merit-header">✦ Công Đức ✦</div>
+    <aside id="merit-card" class="info-card right-merit-card draggable-box">
+      <div id="merit-drag-handle" class="guide-card-header" title="Giữ chuột để kéo thả vị trí">
+        <span class="guide-header-title" id="merit-header-title">✦ Công Đức ✦</span>
+      </div>
       <div id="merit-list-container" class="merit-body">
         <div class="merit-empty">Chưa có</div>
       </div>
+      <div class="card-resize-handle" title="Kéo góc này để phóng to / thu nhỏ">⤡</div>
     </aside>
 
     <!-- 6. Sớ Vàng Xướng Tên Hồi Hướng Công Đức / Đọc Kinh -->
@@ -126,12 +131,13 @@
       </div>
       <button id="btn-test-bell" class="toolbar-btn" title="Thỉnh Chuông">🔔 Chuông</button>
       <button id="btn-test-chant" class="toolbar-btn" title="Thử Giọng Nam Ấm Đọc Kinh">📿 Đọc Kinh</button>
+      <button id="btn-reset-positions" class="toolbar-btn" title="Khôi phục lại vị trí & kích thước ban đầu của tất cả khung">📌 Đặt Lại Vị Trí</button>
       <a href="/admin" target="_blank" class="toolbar-btn" style="text-decoration:none; display:inline-flex; align-items:center;" title="Mở Bảng Điều Khiển Web Admin">⚙️ Web Admin</a>
     </div>
   </div>
 
   <script src="/js/audioEngine.js?v=6.3"></script>
-  <script src="/js/templeScene.js?v=6.3"></script>
-  <script src="/js/app.js?v=6.3"></script>
+  <script src="/js/templeScene.js?v=6.7"></script>
+  <script src="/js/app.js?v=6.7"></script>
 </body>
 </html>

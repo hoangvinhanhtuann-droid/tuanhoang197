@@ -195,6 +195,9 @@
     if (state.theme) {
       applyTheme(state.theme);
     }
+    if (state.uiLayout) {
+      applyUiLayout(state.uiLayout);
+    }
     if (state.hudConfig) {
       applyHudConfig(state.hudConfig);
     }
@@ -214,10 +217,17 @@
     applyTheme(theme);
   });
 
+  socket.on('voice_config_changed', cfg => {
+    if (window.templeAudio && cfg) {
+      window.templeAudio.updateConfig(cfg);
+    }
+  });
+
   socket.on('seat_event', evt => {
     if (!evt) return;
     if (window.templeScene && typeof evt.seatIndex === 'number') {
-      window.templeScene.triggerSeatBurst(evt.seatIndex, '#ffd700');
+      const burstColor = evt.action === 'leave_seat' ? 'rgba(255, 230, 180, 0.45)' : (evt.action === 'replace_seat' ? '#60a5fa' : '#ffd700');
+      window.templeScene.triggerSeatBurst(evt.seatIndex, burstColor);
 
       // Nếu là sự kiện dâng hương cắm nhang lễ Phật (khi gõ "adidaphat" / "a di đà phật")
       if (evt.isIncenseOffering || evt.action === 'offer_incense') {
@@ -230,7 +240,7 @@
         );
       }
     }
-    if (evt.action === 'join_seat' && window.templeAudio) {
+    if ((evt.action === 'join_seat' || evt.action === 'replace_seat') && window.templeAudio) {
       window.templeAudio.playTempleBell(0.55);
     }
   });
@@ -247,16 +257,61 @@
     );
   });
 
+  // Hàng đợi phát bài kinh & xướng tên tuần tự - ĐẢM BẢO KHÔNG BAO GIỜ NÓI ĐÈ LÊN NHAU
+  const clientChantQueue = [];
+  let isProcessingClientChant = false;
+
+  async function processClientChantQueue() {
+    if (isProcessingClientChant) return;
+    isProcessingClientChant = true;
+
+    while (clientChantQueue.length > 0) {
+      const payload = clientChantQueue.shift();
+      try {
+        const isMerit = payload.type === 'merit_dedication';
+        const title = isMerit
+          ? `✦ XƯỚNG TÊN HỒI HƯỚNG · ${(payload.donorName || '').toUpperCase()} ✦`
+          : `✦ ${(payload.title || 'TỤNG KINH TỊNH TÂM').toUpperCase()} ✦`;
+
+        let targetSeatIndex = (typeof payload.seatIndex === 'number' && payload.seatIndex >= 0) ? payload.seatIndex : -1;
+        if (targetSeatIndex < 0 && payload.donorName && window.templeScene && window.templeScene.seats) {
+          const normDonor = String(payload.donorName).toLowerCase().trim();
+          const foundSeat = window.templeScene.seats.find(s => s && s.occupied && s.user && String(s.user.nickname).toLowerCase().trim() === normDonor);
+          if (foundSeat) targetSeatIndex = foundSeat.index;
+        }
+
+        const textLen = (payload.text || '').length;
+        const estDurationMs = Math.min(15000, Math.max(7500, textLen * 110));
+
+        showChantToast(title, payload.text, estDurationMs);
+
+        if (isMerit && targetSeatIndex >= 0 && window.templeScene) {
+          window.templeScene.setSpotlightSeat(targetSeatIndex, estDurationMs);
+        }
+
+        if (window.templeAudio) {
+          await window.templeAudio.playChantSpeech(payload);
+        } else {
+          await new Promise(r => setTimeout(r, estDurationMs));
+        }
+
+        if (window.templeScene) {
+          window.templeScene.clearSpotlightSeat();
+        }
+        // Khoảng lặng 400ms giữa 2 lượt đọc
+        await new Promise(r => setTimeout(r, 400));
+      } catch (err) {
+        console.warn('[ClientChantQueue] Error:', err);
+      }
+    }
+
+    isProcessingClientChant = false;
+  }
+
   socket.on('chant_speech', payload => {
     if (!payload) return;
-    const title = payload.type === 'merit_dedication'
-      ? `✦ XƯỚNG TÊN HỒI HƯỚNG · ${(payload.donorName || '').toUpperCase()} ✦`
-      : `✦ ${(payload.title || 'TỤNG KINH TỊNH TÂM').toUpperCase()} ✦`;
-    showChantToast(title, payload.text, 11000);
-
-    if (window.templeAudio) {
-      window.templeAudio.playChantSpeech(payload);
-    }
+    clientChantQueue.push(payload);
+    processClientChantQueue();
   });
 
   socket.on('bell_ring', () => {
@@ -299,45 +354,118 @@
     });
   }
 
-  // 3. Khôi phục vị trí đã lưu từ LocalStorage
-  function restoreSavedGuidePosition() {
-    if (!guideCard) return;
+  // ==========================================================================
+  // HỆ THỐNG KÉO THẢ (DRAG) & PHÓNG TO / THU NHỎ (RESIZE) ĐỒNG BỘ THỜI GIAN THỰC LÊN LIVE OBS
+  // Hỗ trợ Bảng Hướng Dẫn, Bảng Công Đức, Banner Tiêu Đề & Nhãn Tên 3 Thầy
+  // ==========================================================================
+  const movableInstancesMap = new Map();
+
+  function applyUiLayout(layoutMap) {
+    if (!layoutMap) return;
+    Object.keys(layoutMap).forEach(key => {
+      const inst = movableInstancesMap.get(key);
+      if (inst) {
+        const l = layoutMap[key];
+        inst.updateExternal(l.left, l.top, l.scale);
+      }
+    });
+  }
+
+  function setupDraggableAndResizable(el, handle, storageKey, defaultOpts = {}) {
+    if (!el || !stageContainer) return null;
+
+    const dragHandle = handle || el;
+    let currentLeftPct = defaultOpts.left !== undefined ? defaultOpts.left : 0;
+    let currentTopPct = defaultOpts.top !== undefined ? defaultOpts.top : 0;
+    let currentScale = defaultOpts.scale !== undefined ? defaultOpts.scale : 1.0;
+    const origin = defaultOpts.origin || 'top left';
+    const centerTranslate = !!defaultOpts.centerTranslate;
+
+    // Khôi phục từ localStorage (nếu có cache cục bộ)
     try {
-      const saved = localStorage.getItem('thien_duong_guide_pos');
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
-        const { top, left } = JSON.parse(saved);
-        if (top && left) {
-          guideCard.classList.add('pos-custom');
-          guideCard.style.top = top;
-          guideCard.style.left = left;
-          guideCard.style.right = 'auto';
-        }
+        const d = JSON.parse(saved);
+        if (typeof d.left === 'number') currentLeftPct = d.left;
+        if (typeof d.top === 'number') currentTopPct = d.top;
+        if (typeof d.scale === 'number') currentScale = d.scale;
       }
     } catch (_) {}
-  }
-  restoreSavedGuidePosition();
 
-  // 4. Kéo thả tự do trên toàn bộ màn hình (Full Free Drag & Drop)
-  if (guideCard && guideDragHandle && stageContainer) {
+    function apply() {
+      el.style.left = `${currentLeftPct}%`;
+      el.style.top = `${currentTopPct}%`;
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+      el.style.transform = centerTranslate
+        ? `translate(-50%, -50%) scale(${currentScale})`
+        : `scale(${currentScale})`;
+      el.style.transformOrigin = origin;
+    }
+    apply();
+
+    function saveLocal() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({
+          left: currentLeftPct,
+          top: currentTopPct,
+          scale: currentScale
+        }));
+      } catch (_) {}
+    }
+
+    // Gửi vị trí đồng bộ qua Socket.IO tới màn hình Live OBS trong thời gian thực
+    let lastEmitTime = 0;
+    let emitTimer = null;
+    function emitLiveThrottled() {
+      const now = Date.now();
+      if (now - lastEmitTime > 35) {
+        lastEmitTime = now;
+        sendSocketLayout();
+      } else {
+        clearTimeout(emitTimer);
+        emitTimer = setTimeout(() => {
+          lastEmitTime = Date.now();
+          sendSocketLayout();
+        }, 35);
+      }
+    }
+
+    function sendSocketLayout() {
+      if (socket && socket.connected) {
+        socket.emit('update_ui_layout', {
+          key: storageKey,
+          left: currentLeftPct,
+          top: currentTopPct,
+          scale: currentScale
+        });
+      }
+    }
+
+    // 1. Kéo thả di chuyển (Drag)
+    dragHandle.style.cursor = 'grab';
     let isDragging = false;
     let startX = 0, startY = 0;
-    let initialLeft = 0, initialTop = 0;
-    let currentLeftPct = 2.3;
-    let currentTopPct = 10.5;
+    let initialLeftPx = 0, initialTopPx = 0;
 
     const onPointerDown = e => {
-      if (e.target === btnToggleGuide) return;
+      if (e.target.closest('.card-resize-handle') || e.target.closest('button')) return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
 
-      const rect = guideCard.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const stageRect = stageContainer.getBoundingClientRect();
-      initialLeft = rect.left - stageRect.left;
-      initialTop = rect.top - stageRect.top;
+      if (centerTranslate) {
+        initialLeftPx = (rect.left + rect.width / 2) - stageRect.left;
+        initialTopPx = (rect.top + rect.height / 2) - stageRect.top;
+      } else {
+        initialLeftPx = rect.left - stageRect.left;
+        initialTopPx = rect.top - stageRect.top;
+      }
 
-      guideCard.classList.add('is-dragging');
-      guideCard.style.transition = 'none';
+      el.classList.add('is-dragging');
+      el.style.transition = 'none';
       window.addEventListener('pointermove', onPointerMove);
       window.addEventListener('pointerup', onPointerUp);
     };
@@ -349,109 +477,225 @@
 
       const stageW = stageContainer.clientWidth || 540;
       const stageH = stageContainer.clientHeight || 960;
-      const cardW = guideCard.offsetWidth || 160;
-      const cardH = guideCard.offsetHeight || 135;
 
-      const newLeft = Math.max(4, Math.min(stageW - cardW - 4, initialLeft + dx));
-      const newTop = Math.max(4, Math.min(stageH - cardH - 4, initialTop + dy));
+      const newLeftPx = centerTranslate
+        ? Math.max(10, Math.min(stageW - 10, initialLeftPx + dx))
+        : Math.max(-20, Math.min(stageW - 30, initialLeftPx + dx));
+      const newTopPx = centerTranslate
+        ? Math.max(10, Math.min(stageH - 10, initialTopPx + dy))
+        : Math.max(0, Math.min(stageH - 30, initialTopPx + dy));
 
-      currentLeftPct = Number(((newLeft / stageW) * 100).toFixed(2));
-      currentTopPct = Number(((newTop / stageH) * 100).toFixed(2));
+      currentLeftPct = Number(((newLeftPx / stageW) * 100).toFixed(2));
+      currentTopPct = Number(((newTopPx / stageH) * 100).toFixed(2));
 
-      guideCard.classList.remove('pos-top-left', 'pos-top-right', 'pos-mid-left', 'pos-below-merit', 'pos-bottom-ticker');
-      guideCard.classList.add('pos-custom');
-      guideCard.style.left = `${currentLeftPct}%`;
-      guideCard.style.top = `${currentTopPct}%`;
-      guideCard.style.right = 'auto';
+      apply();
+      emitLiveThrottled();
     };
 
     const onPointerUp = () => {
       if (!isDragging) return;
       isDragging = false;
-      guideCard.classList.remove('is-dragging');
-      guideCard.style.transition = '';
+      el.classList.remove('is-dragging');
+      el.style.transition = '';
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-
-      // 1. Lưu lại tọa độ vào LocalStorage
-      try {
-        localStorage.setItem('thien_duong_guide_pos', JSON.stringify({
-          top: `${currentTopPct}%`,
-          left: `${currentLeftPct}%`
-        }));
-      } catch (_) {}
-
-      // 2. Đồng bộ ngay lập tức lên Server để lưu vào runtime_state.json và cập nhật Web Admin
-      socket.emit('update_hud_config', {
-        guidePosition: 'custom',
-        guidePosX: currentLeftPct,
-        guidePosY: currentTopPct
-      });
+      saveLocal();
+      sendSocketLayout();
     };
 
-    guideDragHandle.addEventListener('pointerdown', onPointerDown);
+    dragHandle.addEventListener('pointerdown', onPointerDown);
+
+    // 2. Kéo góc để phóng to / thu nhỏ (Resize Handle)
+    const resizeHandle = el.querySelector('.card-resize-handle');
+    let isResizing = false;
+    if (resizeHandle) {
+      let resizeStartX = 0, resizeStartY = 0;
+      let initialScale = 1.0;
+
+      const onResizeDown = e => {
+        e.stopPropagation();
+        isResizing = true;
+        resizeStartX = e.clientX;
+        resizeStartY = e.clientY;
+        initialScale = currentScale;
+
+        el.classList.add('is-resizing');
+        el.style.transition = 'none';
+        window.addEventListener('pointermove', onResizeMove);
+        window.addEventListener('pointerup', onResizeUp);
+      };
+
+      const onResizeMove = e => {
+        if (!isResizing) return;
+        const dx = e.clientX - resizeStartX;
+        const dy = e.clientY - resizeStartY;
+        const dist = (dx + dy) * 0.5;
+        const scaleDelta = dist / 180;
+        currentScale = Math.max(0.55, Math.min(2.4, Number((initialScale + scaleDelta).toFixed(2))));
+        apply();
+        emitLiveThrottled();
+      };
+
+      const onResizeUp = () => {
+        if (!isResizing) return;
+        isResizing = false;
+        el.classList.remove('is-resizing');
+        el.style.transition = '';
+        window.removeEventListener('pointermove', onResizeMove);
+        window.removeEventListener('pointerup', onResizeUp);
+        saveLocal();
+        sendSocketLayout();
+      };
+
+      resizeHandle.addEventListener('pointerdown', onResizeDown);
+    }
+
+    // 3. Zoom bằng lăn chuột khi giữ Alt hoặc Ctrl
+    el.addEventListener('wheel', e => {
+      if (e.altKey || e.ctrlKey) {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.05 : -0.05;
+        currentScale = Math.max(0.55, Math.min(2.4, Number((currentScale + delta).toFixed(2))));
+        apply();
+        saveLocal();
+        sendSocketLayout();
+      }
+    }, { passive: false });
+
+    const instance = {
+      storageKey,
+      apply,
+      updateExternal: (left, top, scale) => {
+        if (!isDragging && !isResizing) {
+          if (typeof left === 'number') currentLeftPct = left;
+          if (typeof top === 'number') currentTopPct = top;
+          if (typeof scale === 'number') currentScale = scale;
+          apply();
+          saveLocal();
+        }
+      },
+      reset: (broadcast = true) => {
+        currentLeftPct = defaultOpts.left !== undefined ? defaultOpts.left : 0;
+        currentTopPct = defaultOpts.top !== undefined ? defaultOpts.top : 0;
+        currentScale = defaultOpts.scale !== undefined ? defaultOpts.scale : 1.0;
+        apply();
+        saveLocal();
+        if (broadcast) sendSocketLayout();
+      }
+    };
+
+    movableInstancesMap.set(storageKey, instance);
+    return instance;
   }
 
-  // 5. Áp dụng cấu hình HUD từ Server (gửi từ Web Admin hoặc WinForms)
+  // Khởi tạo các khung kéo thả & co giãn
+  const movableInstances = [];
+
+  const topHudEl = document.getElementById('top-hud');
+  const bannerDragHandle = document.getElementById('banner-drag-handle') || topHudEl;
+  if (topHudEl) {
+    movableInstances.push(setupDraggableAndResizable(topHudEl, bannerDragHandle, 'thien_duong_pos_tophud', {
+      left: 4.5,
+      top: 7.2,
+      scale: 1.0,
+      origin: 'top center'
+    }));
+  }
+
+  if (guideCard) {
+    movableInstances.push(setupDraggableAndResizable(guideCard, guideDragHandle, 'thien_duong_pos_guide', {
+      left: 2.3,
+      top: 25.5,
+      scale: 1.0,
+      origin: 'top left'
+    }));
+  }
+
+  const meritCardEl = document.getElementById('merit-card');
+  const meritDragHandleEl = document.getElementById('merit-drag-handle') || meritCardEl;
+  if (meritCardEl) {
+    movableInstances.push(setupDraggableAndResizable(meritCardEl, meritDragHandleEl, 'thien_duong_pos_merit', {
+      left: 70.2,
+      top: 25.5,
+      scale: 1.0,
+      origin: 'top left'
+    }));
+  }
+
+  const tagMonkLeft = document.getElementById('tag-thay-minh-dao');
+  if (tagMonkLeft) {
+    movableInstances.push(setupDraggableAndResizable(tagMonkLeft, tagMonkLeft, 'thien_duong_pos_monk_1', {
+      left: 28,
+      top: 55,
+      scale: 1.0,
+      origin: 'center center',
+      centerTranslate: true
+    }));
+  }
+
+  const tagMonkCenter = document.getElementById('tag-su-tru-tri');
+  if (tagMonkCenter) {
+    movableInstances.push(setupDraggableAndResizable(tagMonkCenter, tagMonkCenter, 'thien_duong_pos_monk_2', {
+      left: 50,
+      top: 54,
+      scale: 1.0,
+      origin: 'center center',
+      centerTranslate: true
+    }));
+  }
+
+  const tagMonkRight = document.getElementById('tag-thay-tam-tu');
+  if (tagMonkRight) {
+    movableInstances.push(setupDraggableAndResizable(tagMonkRight, tagMonkRight, 'thien_duong_pos_monk_3', {
+      left: 72,
+      top: 55,
+      scale: 1.0,
+      origin: 'center center',
+      centerTranslate: true
+    }));
+  }
+
+  const btnResetPositions = document.getElementById('btn-reset-positions');
+  if (btnResetPositions) {
+    btnResetPositions.addEventListener('click', () => {
+      if (socket && socket.connected) {
+        socket.emit('reset_ui_layout');
+      } else {
+        movableInstances.forEach(inst => inst && inst.reset && inst.reset(false));
+      }
+    });
+  }
+
+  // Lắng nghe sự kiện đồng bộ vị trí khung từ Server (khi di chuyển ở tab khác hoặc Bảng Quản trị)
+  socket.on('ui_layout_changed', data => {
+    if (!data || !data.key) return;
+    const inst = movableInstancesMap.get(data.key);
+    if (inst) {
+      inst.updateExternal(data.left, data.top, data.scale);
+    }
+  });
+
+  socket.on('ui_layout_reset', layoutMap => {
+    if (layoutMap) {
+      applyUiLayout(layoutMap);
+    } else {
+      movableInstances.forEach(inst => inst && inst.reset && inst.reset(false));
+    }
+  });
+
+  // 5. Áp dụng cấu hình HUD từ Server (Chỉ điều khiển hiển thị/ẩn, độ mờ opacity và gập gọn, không ghi đè vị trí kéo thả)
   function applyHudConfig(cfg) {
     if (!guideCard || !cfg) return;
-
-    // Reset các class preset vị trí
-    guideCard.classList.remove('pos-top-left', 'pos-top-right', 'pos-mid-left', 'pos-below-merit', 'pos-bottom-ticker', 'pos-custom', 'ui-hidden');
 
     if (cfg.guidePosition === 'hidden') {
       guideCard.classList.add('ui-hidden');
       return;
     }
-
-    if (cfg.guidePosition === 'custom') {
-      guideCard.classList.add('pos-custom');
-      const x = typeof cfg.guidePosX === 'number' ? `${cfg.guidePosX}%` : (cfg.guidePosX || '2.3%');
-      const y = typeof cfg.guidePosY === 'number' ? `${cfg.guidePosY}%` : (cfg.guidePosY || '10.5%');
-      guideCard.style.left = x;
-      guideCard.style.top = y;
-      guideCard.style.right = 'auto';
-    } else if (cfg.guidePosition === 'top_left') {
-      guideCard.classList.add('pos-top-left');
-      guideCard.style.left = '2.3%';
-      guideCard.style.top = '10.5%';
-      guideCard.style.right = 'auto';
-    } else if (cfg.guidePosition === 'top_right') {
-      guideCard.classList.add('pos-top-right');
-      guideCard.style.left = 'auto';
-      guideCard.style.right = '2.3%';
-      guideCard.style.top = '10.5%';
-    } else if (cfg.guidePosition === 'below_merit') {
-      guideCard.classList.add('pos-below-merit');
-      guideCard.style.left = 'auto';
-      guideCard.style.right = '2.3%';
-      guideCard.style.top = '42.0%';
-    } else if (cfg.guidePosition === 'bottom_ticker') {
-      guideCard.classList.add('pos-bottom-ticker');
-      guideCard.style.left = '3.5%';
-      guideCard.style.right = '3.5%';
-      guideCard.style.top = '92.5%';
-    } else { // mid_left
-      guideCard.classList.add('pos-mid-left');
-      guideCard.style.left = '2.3%';
-      guideCard.style.top = '22.0%';
-      guideCard.style.right = 'auto';
-    }
+    guideCard.classList.remove('ui-hidden');
 
     if (typeof cfg.guideOpacity === 'number') {
       guideCard.style.opacity = cfg.guideOpacity;
-    }
-
-    const scale = typeof cfg.guideScale === 'number' ? cfg.guideScale : 0.95;
-    const offX = typeof cfg.guideOffsetX === 'number' ? cfg.guideOffsetX : 0;
-    const offY = typeof cfg.guideOffsetY === 'number' ? cfg.guideOffsetY : 0;
-
-    if (cfg.guidePosition === 'bottom_ticker') {
-      guideCard.style.transform = `scale(${scale})`;
-      guideCard.style.transformOrigin = 'center center';
-    } else {
-      guideCard.style.transform = `translate(${offX}px, ${offY}px) scale(${scale})`;
-      guideCard.style.transformOrigin = (cfg.guidePosition === 'below_merit' || cfg.guidePosition === 'top_right') ? 'top right' : 'top left';
+      if (meritCardEl) meritCardEl.style.opacity = cfg.guideOpacity;
     }
 
     if (typeof cfg.guideCollapsed === 'boolean') {

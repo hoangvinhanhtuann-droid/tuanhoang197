@@ -10,7 +10,7 @@ html, body {
   height: 100%;
   background: #0d0705;
   overflow: hidden;
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,12 +72,12 @@ html, body {
 .monk-tag {
   position: absolute;
   transform: translate(-50%, -50%);
-  padding: 4px 13px;
+  padding: clamp(4px, 0.5vh, 10px) clamp(10px, 1.4vw, 22px);
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(68, 38, 13, 0.92) 0%, rgba(36, 18, 5, 0.95) 100%);
   border: 1.5px solid #e2b857;
   color: #fff6d6;
-  font-size: clamp(10px, 1.45vh, 14px);
+  font-size: clamp(12px, 1.45vh, 26px);
   font-weight: 700;
   white-space: nowrap;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65), 0 0 8px rgba(246, 201, 92, 0.35);
@@ -105,43 +105,89 @@ html, body {
 .seat-name-tag {
   position: absolute;
   transform: translate(-50%, -100%);
-  padding: 2px 9px;
+  padding: clamp(3px, 0.38vh, 7px) clamp(8px, 1.1vw, 18px);
   border-radius: 999px;
-  background: rgba(34, 19, 8, 0.88);
-  border: 1px solid rgba(226, 184, 87, 0.82);
+  background: rgba(34, 19, 8, 0.92);
+  border: 1.5px solid rgba(226, 184, 87, 0.9);
   color: #fff8e7;
-  font-size: clamp(9px, 1.18vh, 12px);
-  font-weight: 600;
+  font-size: clamp(12px, 1.25vh, 24px);
+  font-weight: 700;
   white-space: nowrap;
-  max-width: 115px;
+  max-width: clamp(125px, 22vw, 240px);
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
   transition: transform 0.25s ease, border-color 0.3s ease;
 }
 
-.seat-name-tag.merit-vip {
-  background: linear-gradient(90deg, #5c3409, #8c520d, #5c3409);
-  border: 1.5px solid #ffd700;
-  color: #fffac2;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.65);
+/* NỔI BẬT ĐÚNG 1 NGƯỜI ĐANG ĐƯỢC ĐỌC CẢM ƠN (CHỈ TRONG LÚC ĐỌC) */
+.seat-name-tag.active-gift-spotlight {
+  background: linear-gradient(135deg, rgba(165, 90, 8, 0.99), rgba(245, 185, 30, 0.99), rgba(165, 90, 8, 0.99)) !important;
+  border: 2px solid #ffffff !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 12px rgba(255, 235, 120, 1) !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 35px rgba(255, 180, 20, 0.85) !important;
+  animation: giftSpotlightPulse 1.2s infinite ease-in-out !important;
+  z-index: 25 !important;
+}
+
+@keyframes giftSpotlightPulse {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.95), 0 0 28px rgba(255, 180, 0, 0.8);
+    transform: translate(-50%, -100%) scale(1.12);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 50px rgba(255, 215, 0, 1);
+    transform: translate(-50%, -100%) scale(1.25);
+  }
+}
+
+/* Thẻ phát sáng dưới bồ đoàn (ngay chỗ ngồi) CHỈ HIỆN KHI ĐANG ĐƯỢC ĐỌC CẢM ƠN */
+.cushion-merit-tag.active-gift-spotlight {
+  position: absolute;
+  transform: translate(-50%, 0);
+  padding: clamp(3px, 0.4vh, 8px) clamp(9px, 1.2vw, 20px);
+  border-radius: 999px;
+  border: 1.8px solid #ffffff;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(185, 95, 12, 0.99), rgba(245, 185, 20, 0.99));
+  box-shadow: 0 0 18px rgba(255, 215, 0, 1), 0 0 32px rgba(255, 170, 0, 0.9);
+  font-size: clamp(11px, 1.18vh, 22px);
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cushionSpotlightPulse 1.2s infinite ease-in-out;
+  z-index: 20;
+}
+
+@keyframes cushionSpotlightPulse {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.9), 0 0 25px rgba(255, 180, 0, 0.7);
+    transform: translate(-50%, 0) scale(1.08);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 1), 0 0 42px rgba(255, 215, 0, 1);
+    transform: translate(-50%, 0) scale(1.22);
+  }
 }
 
 /* Bong bóng lời cầu nguyện */
 .prayer-bubble {
   position: absolute;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 248, 224, 0.97);
   color: #4a2508;
   border: 1.5px solid #d69e2e;
-  border-radius: 12px;
-  padding: 3px 10px;
-  font-size: clamp(12px, 1.45vh, 20px);
+  border-radius: 14px;
+  padding: clamp(4px, 0.5vh, 10px) clamp(10px, 1.3vw, 22px);
+  font-size: clamp(13px, 1.48vh, 28px);
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.55);
   animation: floatPrayer 4.5s ease-out forwards;
 }
 
@@ -157,12 +203,13 @@ html, body {
   position: absolute;
   top: 7.2%;
   left: 4.5%;
-  right: 4.5%;
+  width: 91%;
   z-index: 6;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.8vh;
+  cursor: grab;
 }
 
 .temple-banner {
@@ -181,9 +228,9 @@ html, body {
 .banner-lotus-icon {
   position: absolute;
   left: 4.5%;
-  font-size: clamp(18px, 2.7vh, 26px);
+  font-size: clamp(20px, 2.7vh, 46px);
   color: #e6b95c;
-  text-shadow: 0 0 8px rgba(246, 204, 102, 0.55);
+  text-shadow: 0 0 12px rgba(246, 204, 102, 0.65);
 }
 
 .banner-texts {
@@ -191,60 +238,60 @@ html, body {
 }
 
 #banner-title {
-  font-family: 'Noto Serif', serif;
-  font-size: clamp(15px, 2.38vh, 24px);
+  font-family: 'Noto Serif', 'Times New Roman', Georgia, serif;
+  font-size: clamp(18px, 2.45vh, 42px);
   font-weight: 700;
   color: #ebd094;
   letter-spacing: 1.2px;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
 }
 
 #banner-subtitle {
-  font-size: clamp(10px, 1.38vh, 14px);
+  font-size: clamp(11.5px, 1.38vh, 23px);
   color: #d7be8c;
   letter-spacing: 2px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .status-pills {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: clamp(8px, 1.2vw, 20px);
 }
 
 .status-pill {
-  height: 4.2vh;
-  min-width: 118px;
-  padding: 0 14px;
+  height: clamp(34px, 4.4vh, 64px);
+  min-width: clamp(120px, 18vw, 240px);
+  padding: 0 clamp(12px, 1.5vw, 24px);
   border-radius: 999px;
-  background: rgba(31, 18, 9, 0.88);
-  border: 1.2px solid rgba(204, 161, 82, 0.68);
+  background: rgba(31, 18, 9, 0.92);
+  border: 1.5px solid rgba(204, 161, 82, 0.78);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: clamp(6px, 0.8vw, 12px);
   color: #fff6e0;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
 }
 
 .green-dot {
-  width: 9px;
-  height: 9px;
+  width: clamp(8px, 0.8vw, 14px);
+  height: clamp(8px, 0.8vw, 14px);
   border-radius: 50%;
   background: #38d353;
-  box-shadow: 0 0 8px #38d353;
+  box-shadow: 0 0 10px #38d353;
 }
 
 #seat-counter,
 #session-timer {
-  font-size: clamp(12px, 1.65vh, 16px);
+  font-size: clamp(14px, 1.7vh, 28px);
   font-weight: 700;
 }
 
 .pill-sub {
-  font-size: clamp(8.5px, 1.1vh, 11px);
-  line-height: 1.05;
+  font-size: clamp(10px, 1.15vh, 19px);
+  line-height: 1.1;
   color: #e2d1b0;
   font-weight: 600;
 }
@@ -254,21 +301,21 @@ html, body {
   position: absolute;
   top: 25.5%;
   z-index: 6;
-  background: rgba(38, 20, 8, 0.85);
-  backdrop-filter: blur(6px);
-  border: 1.2px solid rgba(212, 167, 85, 0.72);
-  border-radius: 12px;
-  padding: 0.8vh 10px;
+  background: rgba(38, 20, 8, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(212, 167, 85, 0.78);
+  border-radius: clamp(10px, 1.2vw, 18px);
+  padding: clamp(8px, 1.1vh, 18px) clamp(10px, 1.4vw, 22px);
   color: #f7ebd2;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
   transition: opacity 0.3s ease, transform 0.25s ease, top 0.35s ease, left 0.35s ease, right 0.35s ease;
 }
 
 .left-guide-card {
   left: 2.3%;
-  width: 29.5%;
-  font-size: clamp(9.5px, 1.35vh, 13px);
-  line-height: 1.38;
+  width: clamp(170px, 32%, 360px);
+  font-size: clamp(12px, 1.4vh, 24px);
+  line-height: 1.45;
   user-select: none;
 }
 
@@ -277,10 +324,10 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   cursor: grab;
-  padding-bottom: 3px;
-  border-bottom: 1px dashed rgba(229, 184, 91, 0.3);
+  padding-bottom: 4px;
+  border-bottom: 1px dashed rgba(229, 184, 91, 0.35);
 }
 
 .guide-card-header:active {
@@ -288,27 +335,27 @@ html, body {
 }
 
 .guide-header-title {
-  font-size: 0.88em;
+  font-size: 1.05em;
   font-weight: 700;
   color: #f6c453;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .guide-btn-toggle {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   color: #fbd38d;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
+  width: clamp(20px, 2.2vw, 32px);
+  height: clamp(20px, 2.2vw, 32px);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 11px;
+  font-size: clamp(12px, 1.3vw, 18px);
   line-height: 1;
 }
 
@@ -411,6 +458,59 @@ html, body {
   user-select: none;
 }
 
+/* Card Drag & Resize Engine (Hỗ trợ kéo thả tự do & phóng to thu nhỏ đồng bộ text) */
+.draggable-box {
+  user-select: none;
+}
+
+.draggable-box.is-dragging,
+.monk-tag.is-dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 0 25px rgba(246, 196, 83, 0.9) !important;
+  border-color: #ffd700 !important;
+  z-index: 25 !important;
+  user-select: none !important;
+}
+
+.draggable-box.is-resizing {
+  cursor: nwse-resize !important;
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.9) !important;
+  border-color: #38bdf8 !important;
+  z-index: 25 !important;
+  user-select: none !important;
+}
+
+.card-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 22px;
+  height: 22px;
+  cursor: nwse-resize;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 3px 2px 0;
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(246, 196, 83, 0.65);
+  user-select: none;
+  z-index: 10;
+  border-bottom-right-radius: 10px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.card-resize-handle:hover {
+  color: #ffd700;
+  transform: scale(1.3);
+}
+
+.monk-tag {
+  cursor: grab;
+  pointer-events: auto !important;
+  user-select: none;
+}
+
 .left-guide-card.ui-hidden {
   display: none !important;
 }
@@ -441,29 +541,29 @@ html, body {
 
 .right-merit-card {
   right: 2.3%;
-  width: 27.5%;
+  width: clamp(160px, 30%, 340px);
   min-height: 7.2vh;
   text-align: center;
 }
 
 .merit-header {
-  font-size: clamp(11px, 1.45vh, 14.5px);
+  font-size: clamp(13px, 1.55vh, 26px);
   font-weight: 700;
   color: #fbd38d;
-  margin-bottom: 0.5vh;
-  letter-spacing: 0.4px;
+  margin-bottom: 0.6vh;
+  letter-spacing: 0.5px;
 }
 
 .merit-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-height: 14vh;
+  gap: clamp(4px, 0.5vh, 8px);
+  max-height: 18vh;
   overflow: hidden;
 }
 
 .merit-empty {
-  font-size: clamp(10px, 1.25vh, 12.5px);
+  font-size: clamp(11.5px, 1.3vh, 22px);
   color: rgba(235, 216, 184, 0.72);
   padding: 0.4vh 0;
 }
@@ -472,9 +572,9 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: clamp(9.5px, 1.22vh, 12px);
-  padding: 2.5px 6px;
-  border-radius: 6px;
+  font-size: clamp(11.5px, 1.3vh, 22px);
+  padding: clamp(3px, 0.4vh, 7px) clamp(6px, 0.9vw, 14px);
+  border-radius: 7px;
   background: rgba(255, 215, 0, 0.12);
   border: 1px solid rgba(255, 215, 0, 0.35);
   color: #fff6d1;
@@ -491,48 +591,59 @@ html, body {
 .merit-item-pts {
   color: #ffd700;
   font-weight: 800;
-  font-size: 0.95em;
+  font-size: 1.0em;
 }
 
 /* 6. Sớ Vàng Xướng Tên Hồi Hướng / Đọc Kinh */
 .chant-toast {
   position: absolute;
-  left: 6%;
-  right: 6%;
+  left: 5%;
+  right: 5%;
+  width: 90%;
+  max-width: 90%;
+  box-sizing: border-box;
   top: 42%;
-  z-index: 12;
+  z-index: 15;
   pointer-events: none;
   transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 .chant-toast.hidden {
   opacity: 0;
-  transform: translateY(12px) scale(0.95);
+  transform: translateY(14px) scale(0.95);
+  pointer-events: none;
 }
 
 .chant-toast-inner {
-  background: linear-gradient(135deg, rgba(74, 35, 6, 0.96), rgba(40, 17, 3, 0.97));
+  background: linear-gradient(135deg, rgba(62, 28, 5, 0.97), rgba(32, 14, 2, 0.98));
   border: 2px solid #ffd700;
-  border-radius: 16px;
-  padding: 1.6vh 20px;
+  border-radius: 18px;
+  padding: clamp(12px, 1.8vh, 28px) clamp(16px, 2.2vw, 36px);
   text-align: center;
-  box-shadow: 0 0 35px rgba(255, 208, 0, 0.65), inset 0 0 20px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 35px rgba(255, 208, 0, 0.65), inset 0 0 18px rgba(255, 215, 0, 0.28);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .chant-toast-title {
   color: #ffd700;
-  font-family: 'Noto Serif', serif;
-  font-size: clamp(16px, 2.2vh, 32px);
+  font-family: 'Noto Serif', 'Times New Roman', Georgia, serif;
+  font-size: clamp(16px, 2.1vh, 36px);
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   margin-bottom: 6px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 215, 0, 0.5);
+  word-break: break-word;
 }
 
 .chant-toast-text {
   color: #fff9e6;
-  font-size: clamp(15px, 1.9vh, 26px);
-  line-height: 1.45;
+  font-size: clamp(13px, 1.6vh, 28px);
+  line-height: 1.5;
   font-weight: 600;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 /* 7. Thanh Công Cụ Nhanh (Tự mờ khi không rê chuột) */

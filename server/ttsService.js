@@ -1,5 +1,6 @@
 /**
- * Dịch vụ tạo Giọng Nam Trầm Ấm Đọc Kinh / Xướng Tên Hồi Hướng (Edge Neural TTS + Fallback)
+ * Dịch vụ tạo Giọng Nam Trầm Ấm Đọc Kinh & Giọng Sư Cô Thanh Tịnh
+ * (Microsoft Edge Neural TTS: vi-VN-NamMinhNeural & vi-VN-HoaiMyNeural + Fallback)
  */
 
 const https = require('https');
@@ -14,46 +15,85 @@ try {
   console.warn('[TTS] msedge-tts chưa được nạp, sẽ sử dụng bộ đọc dự phòng:', err.message);
 }
 
+/**
+ * Chuẩn hóa văn bản đọc kinh:
+ * 1. Làm sạch emoji, ký tự đặc biệt gây lỗi SSML XML.
+ * 2. Phân đoạn thông minh: chuyển các dấu ngắt (, ; : —) thành dấu chấm.
+ * 3. Đảm bảo mỗi mệnh đề không quá 9-10 từ để không tràn single-breath buffer
+ *    của Microsoft Azure Neural Voice (nguyên nhân gây "no turn.end received").
+ */
 function sanitizeTextForSsml(rawText) {
-  return String(rawText || '')
+  let s = String(rawText || '')
     .normalize('NFC')
-    // Loại bỏ Emoji, ký tự điều khiển và ký tự đặc biệt làm lỗi XML SSML của Edge TTS
     .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}]/gu, ' ')
-    .replace(/[&<>"'`*~^|\\/{}[\]()@#$%=+_]/g, ' ')
+    .replace(/[&<>'"`*~^|\\/{}[\]()@#$%+=_]/g, ' ')
+    .replace(/[;:,—–\-]+/g, '. ')
     .replace(/\s+/g, ' ')
     .trim();
+
+  const parts = s.split(/[.!?]+/).map(p => p.trim()).filter(Boolean);
+  const safeChunks = [];
+  for (const part of parts) {
+    const words = part.split(/\s+/).filter(Boolean);
+    if (words.length <= 10) {
+      safeChunks.push(words.join(' '));
+    } else {
+      for (let i = 0; i < words.length; i += 8) {
+        safeChunks.push(words.slice(i, i + 8).join(' '));
+      }
+    }
+  }
+
+  return safeChunks.length > 0 ? safeChunks.join('. ') + '.' : '';
 }
 
 /**
- * Tạo buffer MP3 từ văn bản với cấu hình giọng đọc kinh (Pitch trầm + Rate chậm)
+ * Tạo buffer MP3 từ văn bản với cấu hình giọng đọc kinh chuẩn Neural:
+ * - Nam: vi-VN-NamMinhNeural (Trầm ấm, uy nghiêm)
+ * - Nữ: vi-VN-HoaiMyNeural (Thanh tịnh, dịu dàng)
  */
 async function synthesizeChantSpeech(text, voiceConfig = {}) {
   const cleanText = sanitizeTextForSsml(text);
   if (!cleanText) return null;
 
-  const voiceName = voiceConfig.voiceName || 'vi-VN-NamMinhNeural';
-  const pitchHz = Number.isFinite(Number(voiceConfig.pitchHz)) ? Number(voiceConfig.pitchHz) : -8;
-  const ratePercent = Number.isFinite(Number(voiceConfig.ratePercent)) ? Number(voiceConfig.ratePercent) : -20;
+  const pId = String(voiceConfig.presetId || voiceConfig.id || '').toLowerCase();
+  let voiceName = voiceConfig.voiceName;
 
-  const pitchStr = `${pitchHz >= 0 ? '+' : ''}${pitchHz}Hz`;
-  const rateStr = `${ratePercent >= 0 ? '+' : ''}${ratePercent}%`;
+  if (pId.includes('nu') || pId.includes('su_co') || pId.includes('hoaimy')) {
+    voiceName = 'vi-VN-HoaiMyNeural';
+  } else if (
+    pId.includes('nam') ||
+    pId.includes('lao') ||
+    pId.includes('thay') ||
+    pId.includes('namminh')
+  ) {
+    voiceName = 'vi-VN-NamMinhNeural';
+  }
 
-  // 1. Ưu tiên Microsoft Edge Neural TTS (vi-VN-NamMinhNeural với prosody trầm ấm)
+  if (!voiceName || (!voiceName.includes('HoaiMy') && !voiceName.includes('NamMinh'))) {
+    voiceName = 'vi-VN-NamMinhNeural';
+  }
+
+  // 1. Thử Microsoft Edge Neural TTS (Thời gian chờ tối đa 2.2s để tránh đơ/lag khi mạng chậm)
   if (MsEdgeTTS && OUTPUT_FORMAT) {
-    let tts = null;
+    let ttsInstance = null;
     try {
-      tts = new MsEdgeTTS();
-      await tts.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-
-      const { audioStream } = tts.toStream(cleanText, {
-        pitch: pitchStr,
-        rate: rateStr
-      });
+      ttsInstance = new MsEdgeTTS();
+      await ttsInstance.setMetadata(voiceName, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
 
       const buffer = await new Promise((resolve, reject) => {
+        const { audioStream } = ttsInstance.toStream(cleanText);
         const chunks = [];
-        const timeout = setTimeout(() => reject(new Error('Edge TTS timeout')), 9000);
+        let receivedFirstChunk = false;
+
+        // Nếu quá 2.2 giây không phản hồi, hủy ngay lập tức để chuyển qua Google TTS (200ms)
+        const timeout = setTimeout(() => {
+          if (audioStream && !audioStream.destroyed) audioStream.destroy();
+          reject(new Error('Edge TTS timeout'));
+        }, 2200);
+
         audioStream.on('data', chunk => {
+          receivedFirstChunk = true;
           if (Buffer.isBuffer(chunk)) chunks.push(chunk);
           else chunks.push(Buffer.from(chunk));
         });
@@ -67,24 +107,20 @@ async function synthesizeChantSpeech(text, voiceConfig = {}) {
         });
       });
 
-      if (tts && typeof tts.close === 'function') {
-        try { tts.close(); } catch (_) {}
-      }
+      try { ttsInstance.close(); } catch (_) {}
 
       if (buffer && buffer.length > 256) {
         return {
           buffer,
           engine: 'edge-neural',
-          voiceName,
-          pitchStr,
-          rateStr
+          voiceName
         };
       }
     } catch (edgeErr) {
-      if (tts && typeof tts.close === 'function') {
-        try { tts.close(); } catch (_) {}
+      if (ttsInstance) {
+        try { ttsInstance.close(); } catch (_) {}
       }
-      console.warn('[TTS] Edge Neural TTS fallback:', edgeErr.message);
+      console.warn(`[TTS] Edge Neural (${voiceName}) không kịp phản hồi (<2.2s), chuyển tức thì sang Google TTS:`, edgeErr.message);
     }
   }
 
@@ -111,9 +147,7 @@ async function synthesizeChantSpeech(text, voiceConfig = {}) {
       return {
         buffer,
         engine: 'google-fallback',
-        voiceName: 'vi-VN-Fallback',
-        pitchStr,
-        rateStr
+        voiceName: 'vi-VN-Fallback'
       };
     }
   } catch (fallbackErr) {
@@ -124,5 +158,6 @@ async function synthesizeChantSpeech(text, voiceConfig = {}) {
 }
 
 module.exports = {
+  sanitizeTextForSsml,
   synthesizeChantSpeech
 };
