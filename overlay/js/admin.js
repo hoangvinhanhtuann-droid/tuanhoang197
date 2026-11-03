@@ -33,8 +33,8 @@
   const btnReloadOverlay = document.getElementById('btn-reload-overlay');
   const btnLogout = document.getElementById('btn-logout');
 
-  // Quản lý âm thanh Admin: Mặc định BẬT để tiện test quà và nghe thử
-  let adminAudioEnabled = localStorage.getItem('admin_audio_enabled') !== 'false';
+  // Quản lý âm thanh Admin: Mặc định TẮT khi live để tránh bị phát 2 lần qua Loa Máy Tính gây vọng và rè
+  let adminAudioEnabled = localStorage.getItem('admin_audio_enabled') === 'true';
 
   function updateAdminAudioUI() {
     if (!btnToggleAdminAudio) return;
@@ -42,12 +42,12 @@
       btnToggleAdminAudio.textContent = '🔊 Loa Admin: BẬT';
       btnToggleAdminAudio.style.background = '#059669';
       btnToggleAdminAudio.style.borderColor = '#10b981';
-      btnToggleAdminAudio.title = 'Loa Admin đang BẬT. Bấm để TẮT nếu bạn mở song song cùng màn hình Overlay để tránh vọng âm.';
+      btnToggleAdminAudio.title = 'Loa Admin đang BẬT. Chú ý: Hãy bấm TẮT nếu bạn đang Live trên TikTok Studio để không bị vọng 2 lần âm thanh!';
     } else {
-      btnToggleAdminAudio.textContent = '🔇 Loa Admin: TẮT';
-      btnToggleAdminAudio.style.background = '#475569';
-      btnToggleAdminAudio.style.borderColor = '#64748b';
-      btnToggleAdminAudio.title = 'Loa Admin đang TẮT. Bấm để BẬT lại nếu muốn nghe âm thanh trực tiếp trên trang này.';
+      btnToggleAdminAudio.textContent = '🔇 Loa Admin: TẮT (Chống Vọng)';
+      btnToggleAdminAudio.style.background = '#334155';
+      btnToggleAdminAudio.style.borderColor = '#475569';
+      btnToggleAdminAudio.title = 'Loa Admin đang TẮT để bảo đảm âm thanh sạch 100%, không bị vọng âm khi đang Live TikTok Studio. Bấm để BẬT lại nếu cần nghe thử.';
     }
   }
   updateAdminAudioUI();

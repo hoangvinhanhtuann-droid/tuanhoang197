@@ -30,9 +30,9 @@ class TempleAudioEngine {
       bgMusicTrack: 'zen_pentatonic_432',
       customMp3Url: '',
       bgMusicVolume: 0.38,
-      reverbLevel: 0.28,
-      warmthDb: 4.5,
-      playbackRate: 0.93
+      reverbLevel: 0.16,
+      warmthDb: 1.5,
+      playbackRate: 0.94
     };
 
     // Tự động khởi tạo âm thanh ngay khi nạp (tương thích OBS & TikTok Live Studio)
@@ -44,11 +44,21 @@ class TempleAudioEngine {
       if (!this.ctx) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         this.ctx = new AudioCtx();
-        this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.95;
-        this.masterGain.connect(this.ctx.destination);
 
-        this.reverbNode = this.createTempleReverbImpulse(2.4, 2.2);
+        // 1. Master Limiter (Dynamics Compressor): Triệt tiêu hoàn toàn hiện tượng vỡ tiếng rè nhiễu khi live
+        this.limiter = this.ctx.createDynamicsCompressor();
+        this.limiter.threshold.setValueAtTime(-2.5, this.ctx.currentTime);
+        this.limiter.knee.setValueAtTime(4.0, this.ctx.currentTime);
+        this.limiter.ratio.setValueAtTime(20.0, this.ctx.currentTime);
+        this.limiter.attack.setValueAtTime(0.002, this.ctx.currentTime);
+        this.limiter.release.setValueAtTime(0.12, this.ctx.currentTime);
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+        this.masterGain.connect(this.limiter);
+        this.limiter.connect(this.ctx.destination);
+
+        this.reverbNode = this.createTempleReverbImpulse(2.0, 2.6);
       }
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
@@ -67,15 +77,27 @@ class TempleAudioEngine {
     }
   }
 
-  createTempleReverbImpulse(durationSec = 2.4, decay = 2.2) {
+  /**
+   * Tạo Impulse Reverb Chánh Điện Tự Nhiên & Ấm Áp
+   * (Đã xử lý bộ lọc low-pass khử hoàn toàn tạp âm xèo xèo kim loại của white noise)
+   */
+  createTempleReverbImpulse(durationSec = 2.0, decay = 2.6) {
     const rate = this.ctx.sampleRate;
     const length = Math.floor(rate * durationSec);
     const impulse = this.ctx.createBuffer(2, length, rate);
     for (let ch = 0; ch < 2; ch++) {
       const data = impulse.getChannelData(ch);
+      let lp = 0;
       for (let i = 0; i < length; i++) {
-        const env = Math.pow(1 - i / length, decay);
-        data[i] = (Math.random() * 2 - 1) * env * 0.5;
+        const progress = i / length;
+        const env = Math.pow(1 - progress, decay);
+        const white = (Math.random() * 2 - 1);
+        
+        // Single-pole IIR lowpass filter: làm mềm các hạt âm thanh, loại bỏ tạp âm rè
+        const alpha = Math.max(0.05, 0.28 * (1 - progress * 0.65));
+        lp += alpha * (white - lp);
+
+        data[i] = lp * env * 0.22;
       }
     }
     const convolver = this.ctx.createConvolver();
@@ -465,13 +487,14 @@ class TempleAudioEngine {
       this.customAudioEl.volume = Math.max(0, (Number(this.config.bgMusicVolume) || 0.38) * 0.2);
     }
 
-    this.playTempleBell(0.95);
-    await new Promise(r => setTimeout(r, 650));
+    // Tiếng chuông khai đàn thanh tịnh, âm lượng vừa phải không lấn át tiếng đọc
+    this.playTempleBell(0.40);
+    await new Promise(r => setTimeout(r, 600));
 
     if (audioBase64) {
       let webAudioSuccess = false;
 
-      // 1. Thử phát qua WebAudio DSP Engine (BiquadFilter + Reverb Chánh Điện 432Hz)
+      // 1. Phát qua WebAudio DSP Engine Chuyên Nghiệp (LowCut + Clarity EQ + Hall Reverb + Master Limiter)
       if (this.ctx && this.ctx.state === 'running') {
         try {
           const binary = atob(audioBase64);
@@ -485,32 +508,59 @@ class TempleAudioEngine {
           source.buffer = audioBuffer;
           this.activeSourceNode = source;
 
-          const rate = Number(this.config.playbackRate) || 0.93;
+          const rate = Number(this.config.playbackRate) || 0.94;
           source.playbackRate.value = Math.max(0.60, Math.min(1.60, rate));
 
+          // 1. Cắt ù rền tạp âm tần số siêu trầm (High-pass 85Hz)
+          const lowCut = this.ctx.createBiquadFilter();
+          lowCut.type = 'highpass';
+          lowCut.frequency.value = 85;
+          lowCut.Q.value = 0.7;
+
+          // 2. Độ ấm tự nhiên (Low-shelf 200Hz, kẹp tối đa +1.8dB chống ồm đặc giọng)
+          const rawWarmth = Number(this.config.warmthDb) || 1.2;
+          const clampedWarmth = Math.min(1.8, Math.max(0, rawWarmth * 0.32));
           const lowShelf = this.ctx.createBiquadFilter();
           lowShelf.type = 'lowshelf';
-          lowShelf.frequency.value = 175;
-          lowShelf.gain.value = Number(this.config.warmthDb) || 4.5;
+          lowShelf.frequency.value = 200;
+          lowShelf.gain.value = clampedWarmth;
 
+          // 3. Tăng độ rõ chữ phụ âm tiếng Việt (Peaking 3200Hz, +2.2dB)
+          const clarityFilter = this.ctx.createBiquadFilter();
+          clarityFilter.type = 'peaking';
+          clarityFilter.frequency.value = 3200;
+          clarityFilter.Q.value = 1.0;
+          clarityFilter.gain.value = 2.2;
+
+          // 4. Khử chói gắt dải cao sibilance (High-shelf 7500Hz, -1.2dB)
           const highShelf = this.ctx.createBiquadFilter();
           highShelf.type = 'highshelf';
-          highShelf.frequency.value = 4000;
-          highShelf.gain.value = -3.0;
+          highShelf.frequency.value = 7500;
+          highShelf.gain.value = -1.2;
+
+          // Kết nối chuỗi giọng mộc (Dry Voice)
+          source.connect(lowCut);
+          lowCut.connect(lowShelf);
+          lowShelf.connect(clarityFilter);
+          clarityFilter.connect(highShelf);
 
           const dryGain = this.ctx.createGain();
-          const wetGain = this.ctx.createGain();
-          const revLvl = Math.max(0, Math.min(0.85, Number(this.config.reverbLevel) ?? 0.28));
-          dryGain.gain.value = 1.0;
-          wetGain.gain.value = revLvl;
-
-          source.connect(lowShelf);
-          lowShelf.connect(highShelf);
+          dryGain.gain.value = 0.95;
           highShelf.connect(dryGain);
           dryGain.connect(this.masterGain);
 
+          // 5. Chuỗi Reverb Chánh Điện (Abbey Road Pre-filtering chống đục & chống xèo xèo)
           if (this.reverbNode) {
-            highShelf.connect(this.reverbNode);
+            const revPreFilter = this.ctx.createBiquadFilter();
+            revPreFilter.type = 'lowpass';
+            revPreFilter.frequency.value = 2600;
+
+            const wetGain = this.ctx.createGain();
+            const revLvl = Math.max(0, Math.min(0.22, (Number(this.config.reverbLevel) ?? 0.16) * 0.65));
+            wetGain.gain.value = revLvl;
+
+            highShelf.connect(revPreFilter);
+            revPreFilter.connect(this.reverbNode);
             this.reverbNode.connect(wetGain);
             wetGain.connect(this.masterGain);
           }
@@ -571,7 +621,7 @@ class TempleAudioEngine {
       }
 
       if (webAudioSuccess) {
-        this.playTempleBell(0.65);
+        this.playTempleBell(0.35);
         this.isSpeaking = false;
         if (this.customAudioEl && this.config.bgMusicEnabled) {
           this.customAudioEl.volume = Math.max(0, Math.min(1, (Number(this.config.bgMusicVolume) || 0.38) * 0.85));

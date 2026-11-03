@@ -241,57 +241,57 @@ const VOICE_PRESETS = {
     id: 'nam_tram_doc_kinh',
     name: 'Giọng Nam Trầm Ấm Đọc Kinh (Khuyên dùng)',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -8,
-    ratePercent: -10,
-    reverbLevel: 0.28,
-    warmthDb: 4.5,
-    playbackRate: 0.92,
-    mciSpeed: 920
+    pitchHz: -3,
+    ratePercent: -6,
+    reverbLevel: 0.16,
+    warmthDb: 1.5,
+    playbackRate: 0.94,
+    mciSpeed: 940
   },
   lao_hoa_thuong: {
     id: 'lao_hoa_thuong',
     name: 'Giọng Lão Hòa Thượng Uy Nghiêm (Trầm Sâu)',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -10,
-    ratePercent: -18,
-    reverbLevel: 0.38,
-    warmthDb: 6.5,
-    playbackRate: 0.85,
-    mciSpeed: 850
+    pitchHz: -6,
+    ratePercent: -12,
+    reverbLevel: 0.20,
+    warmthDb: 2.2,
+    playbackRate: 0.88,
+    mciSpeed: 880
   },
   thay_phap_thoai: {
     id: 'thay_phap_thoai',
     name: 'Giọng Thầy Trẻ Ấm Áp Pháp Thoại',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -2,
-    ratePercent: -5,
-    reverbLevel: 0.18,
-    warmthDb: 2.5,
-    playbackRate: 0.98,
-    mciSpeed: 980
+    pitchHz: -1,
+    ratePercent: -4,
+    reverbLevel: 0.14,
+    warmthDb: 1.0,
+    playbackRate: 0.96,
+    mciSpeed: 960
   },
   su_co_thanh_tinh: {
     id: 'su_co_thanh_tinh',
     name: 'Giọng Sư Cô Thanh Tịnh Dịu Hiền (Nữ)',
     voiceName: 'vi-VN-HoaiMyNeural',
-    pitchHz: -2,
-    ratePercent: -5,
-    reverbLevel: 0.24,
-    warmthDb: 1.5,
-    playbackRate: 0.95,
-    mciSpeed: 950
+    pitchHz: -1,
+    ratePercent: -4,
+    reverbLevel: 0.16,
+    warmthDb: 1.0,
+    playbackRate: 0.96,
+    mciSpeed: 960
   },
   // Tương thích các mã preset từ Web Admin
   nam_nhuanduc: {
     id: 'nam_nhuanduc',
     name: 'Nam Âm Trầm (Thích Nhuận Đức)',
     voiceName: 'vi-VN-NamMinhNeural',
-    pitchHz: -8,
-    ratePercent: -10,
-    reverbLevel: 0.28,
-    warmthDb: 4.5,
-    playbackRate: 0.92,
-    mciSpeed: 920
+    pitchHz: -3,
+    ratePercent: -6,
+    reverbLevel: 0.16,
+    warmthDb: 1.5,
+    playbackRate: 0.94,
+    mciSpeed: 940
   },
   nam_trungnien: {
     id: 'nam_trungnien',
@@ -299,10 +299,10 @@ const VOICE_PRESETS = {
     voiceName: 'vi-VN-NamMinhNeural',
     pitchHz: -2,
     ratePercent: -5,
-    reverbLevel: 0.18,
-    warmthDb: 2.5,
-    playbackRate: 0.98,
-    mciSpeed: 980
+    reverbLevel: 0.15,
+    warmthDb: 1.2,
+    playbackRate: 0.95,
+    mciSpeed: 950
   },
   nu_diudang: {
     id: 'nu_diudang',
@@ -992,7 +992,7 @@ class SeatManager {
     }
     if (this.voiceConfig.pitchHz !== undefined) {
       const pitchVal = Number(this.voiceConfig.pitchHz) || 0;
-      this.voiceConfig.warmthDb = Number(Math.max(0, -pitchVal * 0.55).toFixed(2));
+      this.voiceConfig.warmthDb = Number(Math.min(2.0, Math.max(0, -pitchVal * 0.25)).toFixed(2));
     }
     if (Array.isArray(partial.giftThankTemplates) && partial.giftThankTemplates.length > 0) {
       this.voiceConfig.giftThankTemplates = partial.giftThankTemplates;
