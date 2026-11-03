@@ -86,11 +86,11 @@ async function synthesizeChantSpeech(text, voiceConfig = {}) {
         const chunks = [];
         let receivedFirstChunk = false;
 
-        // Nếu quá 2.2 giây không phản hồi, hủy ngay lập tức để chuyển qua Google TTS (200ms)
+        // Chờ tối đa 4.5 giây để Edge Neural kịp phản hồi đường truyền
         const timeout = setTimeout(() => {
           if (audioStream && !audioStream.destroyed) audioStream.destroy();
           reject(new Error('Edge TTS timeout'));
-        }, 2200);
+        }, 4500);
 
         audioStream.on('data', chunk => {
           receivedFirstChunk = true;

@@ -741,8 +741,20 @@ app.post('/api/tiktok/connect', requireAuth, async (req, res) => {
     });
 
     conn.on('streamEnd', () => {
-      console.log(`[TikTokLive] Phiên Live của @${rawUser} đã kết thúc.`);
+      console.log(`[TikTokLive] ⚠️ Phiên Live của @${rawUser} bị ngắt hoặc kết thúc. Đang tự động kết nối lại sau 3.5 giây...`);
       io.emit('tiktok_status', { connected: false, username: rawUser });
+      setTimeout(async () => {
+        try {
+          if (activeTikTokConnection === conn) {
+            console.log(`[TikTokLive] 🔄 Đang tự động kết nối lại @${rawUser}...`);
+            const retryState = await conn.connect();
+            console.log(`[TikTokLive] ✅ Đã kết nối lại thành công @${rawUser} (RoomId: ${retryState.roomId})`);
+            io.emit('tiktok_status', { connected: true, username: rawUser, roomId: retryState.roomId });
+          }
+        } catch (retryErr) {
+          console.warn(`[TikTokLive] Tự kết nối lại @${rawUser} chưa thành công:`, retryErr.message);
+        }
+      }, 3500);
     });
 
     conn.on('error', err => {

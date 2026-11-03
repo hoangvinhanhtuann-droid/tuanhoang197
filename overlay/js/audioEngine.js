@@ -45,20 +45,11 @@ class TempleAudioEngine {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         this.ctx = new AudioCtx();
 
-        // 1. Master Limiter (Dynamics Compressor): Triệt tiêu hoàn toàn hiện tượng vỡ tiếng rè nhiễu khi live
-        this.limiter = this.ctx.createDynamicsCompressor();
-        this.limiter.threshold.setValueAtTime(-2.5, this.ctx.currentTime);
-        this.limiter.knee.setValueAtTime(4.0, this.ctx.currentTime);
-        this.limiter.ratio.setValueAtTime(20.0, this.ctx.currentTime);
-        this.limiter.attack.setValueAtTime(0.002, this.ctx.currentTime);
-        this.limiter.release.setValueAtTime(0.12, this.ctx.currentTime);
-
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
-        this.masterGain.connect(this.limiter);
-        this.limiter.connect(this.ctx.destination);
+        this.masterGain.gain.value = 0.95;
+        this.masterGain.connect(this.ctx.destination);
 
-        this.reverbNode = this.createTempleReverbImpulse(2.0, 2.6);
+        this.reverbNode = this.createTempleReverbImpulse(1.8, 2.2);
       }
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume().catch(() => {});
@@ -79,30 +70,31 @@ class TempleAudioEngine {
 
   /**
    * Tạo Impulse Reverb Chánh Điện Tự Nhiên & Ấm Áp
-   * (Đã xử lý bộ lọc low-pass khử hoàn toàn tạp âm xèo xèo kim loại của white noise)
    */
-  createTempleReverbImpulse(durationSec = 2.0, decay = 2.6) {
-    const rate = this.ctx.sampleRate;
-    const length = Math.floor(rate * durationSec);
-    const impulse = this.ctx.createBuffer(2, length, rate);
-    for (let ch = 0; ch < 2; ch++) {
-      const data = impulse.getChannelData(ch);
-      let lp = 0;
-      for (let i = 0; i < length; i++) {
-        const progress = i / length;
-        const env = Math.pow(1 - progress, decay);
-        const white = (Math.random() * 2 - 1);
-        
-        // Single-pole IIR lowpass filter: làm mềm các hạt âm thanh, loại bỏ tạp âm rè
-        const alpha = Math.max(0.05, 0.28 * (1 - progress * 0.65));
-        lp += alpha * (white - lp);
-
-        data[i] = lp * env * 0.22;
+  createTempleReverbImpulse(durationSec = 1.8, decay = 2.2) {
+    try {
+      const rate = this.ctx.sampleRate;
+      const length = Math.floor(rate * durationSec);
+      const impulse = this.ctx.createBuffer(2, length, rate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = impulse.getChannelData(ch);
+        let lp = 0;
+        for (let i = 0; i < length; i++) {
+          const progress = i / length;
+          const env = Math.pow(1 - progress, decay);
+          const white = (Math.random() * 2 - 1);
+          const alpha = Math.max(0.06, 0.28 * (1 - progress * 0.6));
+          lp += alpha * (white - lp);
+          data[i] = lp * env * 0.18;
+        }
       }
+      const convolver = this.ctx.createConvolver();
+      convolver.buffer = impulse;
+      return convolver;
+    } catch (e) {
+      console.warn('[AudioEngine] Reverb impulse error:', e);
+      return null;
     }
-    const convolver = this.ctx.createConvolver();
-    convolver.buffer = impulse;
-    return convolver;
   }
 
   updateConfig(newCfg = {}) {
@@ -511,56 +503,34 @@ class TempleAudioEngine {
           const rate = Number(this.config.playbackRate) || 0.94;
           source.playbackRate.value = Math.max(0.60, Math.min(1.60, rate));
 
-          // 1. Cắt ù rền tạp âm tần số siêu trầm (High-pass 85Hz)
-          const lowCut = this.ctx.createBiquadFilter();
-          lowCut.type = 'highpass';
-          lowCut.frequency.value = 85;
-          lowCut.Q.value = 0.7;
-
-          // 2. Độ ấm tự nhiên (Low-shelf 200Hz, kẹp tối đa +1.8dB chống ồm đặc giọng)
-          const rawWarmth = Number(this.config.warmthDb) || 1.2;
-          const clampedWarmth = Math.min(1.8, Math.max(0, rawWarmth * 0.32));
+          // 1. Độ ấm trầm tự nhiên (200Hz, +1.5dB)
           const lowShelf = this.ctx.createBiquadFilter();
           lowShelf.type = 'lowshelf';
           lowShelf.frequency.value = 200;
-          lowShelf.gain.value = clampedWarmth;
+          lowShelf.gain.value = 1.5;
 
-          // 3. Tăng độ rõ chữ phụ âm tiếng Việt (Peaking 3200Hz, +2.2dB)
+          // 2. Tăng độ rõ chữ phụ âm tiếng Việt (Peaking 3200Hz, +2.2dB)
           const clarityFilter = this.ctx.createBiquadFilter();
           clarityFilter.type = 'peaking';
           clarityFilter.frequency.value = 3200;
-          clarityFilter.Q.value = 1.0;
           clarityFilter.gain.value = 2.2;
 
-          // 4. Khử chói gắt dải cao sibilance (High-shelf 7500Hz, -1.2dB)
-          const highShelf = this.ctx.createBiquadFilter();
-          highShelf.type = 'highshelf';
-          highShelf.frequency.value = 7500;
-          highShelf.gain.value = -1.2;
-
           // Kết nối chuỗi giọng mộc (Dry Voice)
-          source.connect(lowCut);
-          lowCut.connect(lowShelf);
-          lowShelf.connect(clarityFilter);
-          clarityFilter.connect(highShelf);
-
           const dryGain = this.ctx.createGain();
-          dryGain.gain.value = 0.95;
-          highShelf.connect(dryGain);
+          dryGain.gain.value = 1.0;
+
+          source.connect(lowShelf);
+          lowShelf.connect(clarityFilter);
+          clarityFilter.connect(dryGain);
           dryGain.connect(this.masterGain);
 
-          // 5. Chuỗi Reverb Chánh Điện (Abbey Road Pre-filtering chống đục & chống xèo xèo)
+          // 3. Chuỗi Reverb Chánh Điện êm ái
           if (this.reverbNode) {
-            const revPreFilter = this.ctx.createBiquadFilter();
-            revPreFilter.type = 'lowpass';
-            revPreFilter.frequency.value = 2600;
-
             const wetGain = this.ctx.createGain();
-            const revLvl = Math.max(0, Math.min(0.22, (Number(this.config.reverbLevel) ?? 0.16) * 0.65));
+            const revLvl = Math.max(0, Math.min(0.25, (Number(this.config.reverbLevel) ?? 0.16)));
             wetGain.gain.value = revLvl;
 
-            highShelf.connect(revPreFilter);
-            revPreFilter.connect(this.reverbNode);
+            clarityFilter.connect(this.reverbNode);
             this.reverbNode.connect(wetGain);
             wetGain.connect(this.masterGain);
           }
